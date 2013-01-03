@@ -32,45 +32,39 @@ def get_artifact_url(root, extension):
     return None
 
 
-def get_repose_valve_url(release=False):
+def get_repose_valve_url(root, release=False):
     if release:
         s_or_r = 'releases'
     else:
         s_or_r = 'snapshots'
 
-    root = ("http://maven.research.rackspacecloud.com/content/repositories/%s/"
-            "com/rackspace/papi/core/valve" % s_or_r)
+    vroot = "%s/%s/com/rackspace/papi/core/valve" % (root, s_or_r)
 
-    return get_artifact_url(root, 'jar')
+    return get_artifact_url(vroot, 'jar')
 
 
-def get_filter_bundle_url(release=False):
+def get_filter_bundle_url(root, release=False):
     if release:
         s_or_r = 'releases'
     else:
         s_or_r = 'snapshots'
 
-    root = ("http://maven.research.rackspacecloud.com/content/"
-            "repositories/%s" % s_or_r)
-
-    froot = '%s/com/rackspace/papi/components/filter-bundle' % root
+    froot = ('%s/%s/com/rackspace/papi/components/filter-bundle' %
+             (root, s_or_r))
 
     f_artifact_url = get_artifact_url(froot, 'ear')
 
     return f_artifact_url
 
 
-def get_extensions_filter_bundle_url(release=False):
+def get_extensions_filter_bundle_url(root, release=False):
     if release:
         s_or_r = 'releases'
     else:
         s_or_r = 'snapshots'
 
-    root = ("http://maven.research.rackspacecloud.com/content/"
-            "repositories/%s" % s_or_r)
-
-    eroot = ("%s/com/rackspace/papi/components/extensions/"
-             "extensions-filter-bundle" % root)
+    eroot = ("%s/%s/com/rackspace/papi/components/extensions/"
+             "extensions-filter-bundle" % (root, s_or_r))
 
     e_artifact_url = get_artifact_url(eroot, 'ear')
 
@@ -128,12 +122,14 @@ def run():
                         action='store_true')
     args = parser.parse_args()
 
+    root = "http://maven.research.rackspacecloud.com/content/repositories"
+
     if not args.no_valve:
-        vurl = get_repose_valve_url()
+        vurl = get_repose_valve_url(root)
     if not args.no_filter:
-        furl = get_filter_bundle_url()
+        furl = get_filter_bundle_url(root)
     if not args.no_ext_filter:
-        eurl = get_extensions_filter_bundle_url()
+        eurl = get_extensions_filter_bundle_url(root)
 
     if not args.no_valve:
         print vurl
