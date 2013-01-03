@@ -24,7 +24,8 @@ def get_artifact_url(root, extension):
                 elem.find('updated').text == last_updated):
 
             value = elem.find('value').text
-            artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id, value, extension)
+            artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id, value,
+                                            extension)
             return artifact_url
 
     return None
@@ -36,7 +37,8 @@ def get_repose_valve_url(release=False):
     else:
         s_or_r = 'snapshots'
 
-    root = "http://maven.research.rackspacecloud.com/content/repositories/%s/com/rackspace/papi/core/valve" % s_or_r
+    root = ("http://maven.research.rackspacecloud.com/content/repositories/%s/"
+            "com/rackspace/papi/core/valve" % s_or_r)
 
     return get_artifact_url(root, 'jar')
 
@@ -47,7 +49,8 @@ def get_filter_bundle_url(release=False):
     else:
         s_or_r = 'snapshots'
 
-    root = "http://maven.research.rackspacecloud.com/content/repositories/%s" % s_or_r
+    root = ("http://maven.research.rackspacecloud.com/content/"
+            "repositories/%s" % s_or_r)
 
     froot = '%s/com/rackspace/papi/components/filter-bundle' % root
 
@@ -62,9 +65,11 @@ def get_extensions_filter_bundle_url(release=False):
     else:
         s_or_r = 'snapshots'
 
-    root = "http://maven.research.rackspacecloud.com/content/repositories/%s" % s_or_r
+    root = ("http://maven.research.rackspacecloud.com/content/"
+            "repositories/%s" % s_or_r)
 
-    eroot = "%s/com/rackspace/papi/components/extensions/extensions-filter-bundle" % root
+    eroot = ("%s/com/rackspace/papi/components/extensions/"
+             "extensions-filter-bundle" % root)
 
     e_artifact_url = get_artifact_url(eroot, 'ear')
 
@@ -134,7 +139,8 @@ def run():
 
     print eurl
     if eurl:
-        download_file(eurl, 'usr/share/repose/filters/extensions-filter-bundle.ear')
+        download_file(eurl,
+                      'usr/share/repose/filters/extensions-filter-bundle.ear')
 
 
 if __name__ == '__main__':
