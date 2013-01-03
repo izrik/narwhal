@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 import argparse
-import os
 import inspect
-import xml.etree.ElementTree as et
+import os
 import string
+import xml.etree.ElementTree as et
 
 
 def get_config_sets(configs_folder):

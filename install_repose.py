@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-import requests
-import xml.etree.ElementTree as et
-import xml.dom.minidom
-import sys
-import shutil
 import os
+import shutil
+import sys
+import xml.dom.minidom
+import xml.etree.ElementTree as et
+import requests
 
 
 def get_artifact_url(root, extension):
