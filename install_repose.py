@@ -120,16 +120,18 @@ def run():
     parser.add_argument('--no-ext-filter', help='Don\'t download the '
                         'extension filter bundle EAR file',
                         action='store_true')
+    parser.add_argument('--url-root', help='The url (with path) to download '
+                        'artifacts from.',
+                        default="http://maven.research.rackspacecloud.com/"
+                        "content/repositories")
     args = parser.parse_args()
 
-    root = "http://maven.research.rackspacecloud.com/content/repositories"
-
     if not args.no_valve:
-        vurl = get_repose_valve_url(root)
+        vurl = get_repose_valve_url(args.url_root)
     if not args.no_filter:
-        furl = get_filter_bundle_url(root)
+        furl = get_filter_bundle_url(args.url_root)
     if not args.no_ext_filter:
-        eurl = get_extensions_filter_bundle_url(root)
+        eurl = get_extensions_filter_bundle_url(args.url_root)
 
     if not args.no_valve:
         print vurl
