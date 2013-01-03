@@ -104,22 +104,9 @@ def delete_folder(folder_name):
         shutil.rmtree(folder_name)
 
 
-def blitz():
-    delete_folder('var')
-    delete_folder('etc')
-    delete_folder('usr')
-
-
 def create_folder(folder_name):
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
-
-
-def init():
-    create_folder('usr/share/repose/filters')
-    create_folder('var/log/repose')
-    create_folder('var/repose')
-    create_folder('etc/repose')
 
 
 def run():
@@ -140,9 +127,6 @@ def run():
                         'extension filter bundle EAR file',
                         action='store_true')
     args = parser.parse_args()
-
-    blitz()
-    init()
 
     if not args.no_valve:
         vurl = get_repose_valve_url()
