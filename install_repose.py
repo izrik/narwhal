@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import os
 import shutil
 import sys
@@ -122,6 +123,13 @@ def init():
 
 
 def run():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--valve-dest', help='Folder where you want the '
+                        'repose-valve.jar file to go.',
+                        default='usr/share/repose')
+    args = parser.parse_args()
+
     blitz()
     init()
 
@@ -131,7 +139,7 @@ def run():
 
     print vurl
     if vurl:
-        download_file(vurl, 'usr/share/repose/repose-valve.jar')
+        download_file(vurl, os.path.join(args.valve_dest, 'repose-valve.jar'))
 
     print furl
     if furl:
