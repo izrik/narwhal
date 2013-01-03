@@ -9,6 +9,7 @@ import string
 
 def get_config_sets(configs_folder):
     for entry in os.listdir(configs_folder):
+        # TODO: os.path.join
         if os.path.isdir('%s/%s' % (configs_folder, entry)):
             if os.path.exists('%s/%s/%s' % (configs_folder, entry, '.config-set.xml')):
                 yield entry
@@ -20,20 +21,22 @@ def copy_and_apply_params(source, dest, params={}):
 
     with open(dest, 'w') as output:
         subst = template.safe_substitute(params)
+        # TODO: Warn of un-substituted parameters
         output.write(subst)
 
 
 def process_config_set(config_set_name, configs_folder, params={}):
+    # TODO: os.path.join
     config_xml = et.parse('%s/%s/.config-set.xml' % (configs_folder, config_set_name))
     for folder in config_xml.findall('folder'):
         folder_path = folder.attrib.get('path', '.')
         for f in folder.findall('file'):
             file_source = os.path.join(configs_folder, config_set_name, f.attrib['src'])
             file_basename = os.path.basename(file_source)
-            file_dest = os.path.join(folder_path, file_basename) # TODO: get the filename from file_source without any leading folders
+            file_dest = os.path.join(folder_path, file_basename)
             applying = ''
             if len(params) > 0:
-                applying = ', applying config parameters'
+                applying = ', applying config parameters' # TODO: maybe output parameters provided/substituted?
 
             print 'Copy from "%s" to "%s"%s' % (file_source, file_dest, applying)
             copy_and_apply_params(file_source, file_dest, params)
@@ -54,6 +57,7 @@ def run():
         params[name] = value
     args.params = params
 
+    # TODO: os.path.join
     configs_folder = '%s/configs' % _script_folder
     available_config_sets = [cs for cs in get_config_sets(configs_folder)]
 
