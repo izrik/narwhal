@@ -128,6 +128,9 @@ def run():
     parser.add_argument('--valve-dest', help='Folder where you want the '
                         'repose-valve.jar file to go.',
                         default='usr/share/repose')
+    parser.add_argument('--ear-dest', help='Folder where you want the EAR '
+                        'filter bundles to go.',
+                        default='usr/share/repose/filters')
     args = parser.parse_args()
 
     blitz()
@@ -143,12 +146,12 @@ def run():
 
     print furl
     if furl:
-        download_file(furl, 'usr/share/repose/filters/filter-bundle.ear')
+        download_file(furl, os.path.join(args.ear_dest, 'filter-bundle.ear'))
 
     print eurl
     if eurl:
-        download_file(eurl,
-                      'usr/share/repose/filters/extensions-filter-bundle.ear')
+        download_file(eurl, os.path.join(args.ear_dest,
+                                         'extensions-filter-bundle.ear'))
 
 
 if __name__ == '__main__':
