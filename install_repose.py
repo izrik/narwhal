@@ -131,27 +131,43 @@ def run():
     parser.add_argument('--ear-dest', help='Folder where you want the EAR '
                         'filter bundles to go.',
                         default='usr/share/repose/filters')
+    parser.add_argument('--no-valve',
+                        help='Don\'t download the valve JAR file',
+                        action='store_true')
+    parser.add_argument('--no-filter', help='Don\'t download the standard '
+                        'filter bundle EAR file', action='store_true')
+    parser.add_argument('--no-ext-filter', help='Don\'t download the '
+                        'extension filter bundle EAR file',
+                        action='store_true')
     args = parser.parse_args()
 
     blitz()
     init()
 
-    vurl = get_repose_valve_url()
-    furl = get_filter_bundle_url()
-    eurl = get_extensions_filter_bundle_url()
+    if not args.no_valve:
+        vurl = get_repose_valve_url()
+    if not args.no_filter:
+        furl = get_filter_bundle_url()
+    if not args.no_ext_filter:
+        eurl = get_extensions_filter_bundle_url()
 
-    print vurl
-    if vurl:
-        download_file(vurl, os.path.join(args.valve_dest, 'repose-valve.jar'))
+    if not args.no_valve:
+        print vurl
+        if vurl:
+            download_file(vurl, os.path.join(args.valve_dest,
+                                             'repose-valve.jar'))
 
-    print furl
-    if furl:
-        download_file(furl, os.path.join(args.ear_dest, 'filter-bundle.ear'))
+    if not args.no_filter:
+        print furl
+        if furl:
+            download_file(furl, os.path.join(args.ear_dest,
+                                             'filter-bundle.ear'))
 
-    print eurl
-    if eurl:
-        download_file(eurl, os.path.join(args.ear_dest,
-                                         'extensions-filter-bundle.ear'))
+    if not args.no_ext_filter:
+        print eurl
+        if eurl:
+            download_file(eurl, os.path.join(args.ear_dest,
+                                             'extensions-filter-bundle.ear'))
 
 
 if __name__ == '__main__':
