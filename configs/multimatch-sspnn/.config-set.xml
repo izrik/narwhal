@@ -1,0 +1,12 @@
+<config-set>
+  <folder path="etc/repose">
+    <file src="container.cfg.xml" />
+    <file src="log4j.properties" />
+    <file src="response-messaging.cfg.xml" />
+    <file src="sspnn-fail.wadl" />
+    <file src="sspnn-nc.wadl" />
+    <file src="sspnn-pass.wadl" />
+    <file src="system-model.cfg.xml" />
+    <file src="validator.cfg.xml" />
+  </folder>
+</config-set>
