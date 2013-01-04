@@ -2,6 +2,8 @@
 
 import argparse
 import subprocess
+import time
+import socket
 
 _default_jar_file = 'usr/share/repose/repose-valve.jar'
 
@@ -29,7 +31,10 @@ def run():
     r = ReposeValve(jar_file=args.jar_file, config_dir=args.config_dir,
                     port=args.port, stop_port=args.stop_port,
                     insecure=args.insecure)
-    r.proc.wait()
+
+    time.sleep(35)
+
+    r.stop()
 
 
 class ReposeValve:
@@ -59,7 +64,14 @@ class ReposeValve:
 
         pargs.append('start')
 
-        self.proc = subprocess.Popen(pargs)
+        self.proc = subprocess.Popen(pargs, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+
+    def stop(self):
+        s = socket.create_connection(('localhost', self.stop_port))
+        s.send('stop\r\n')
+        if self.proc.poll() is None:
+            self.proc.communicate()
 
 
 if __name__ == '__main__':
