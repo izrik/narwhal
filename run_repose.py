@@ -26,35 +26,40 @@ def run():
     if args.stop_port is None:
         args.stop_port = int(args.port) + 1000
 
-    p1 = start_repose(jar_file=args.jar_file, config_dir=args.config_dir,
-                      port=args.port, stop_port=args.stop_port,
-                      insecure=args.insecure)
-    p1.wait()
+    r = ReposeValve(jar_file=args.jar_file, config_dir=args.config_dir,
+                    port=args.port, stop_port=args.stop_port,
+                    insecure=args.insecure)
+    r.proc.wait()
 
 
-def start_repose(config_dir, port, jar_file=None, stop_port=None, insecure=False):
+class ReposeValve:
+    def __init__(self, config_dir, port, jar_file=None, stop_port=None, insecure=False):
 
-    if jar_file is None:
-        jar_file = _default_jar_file
+        if jar_file is None:
+            jar_file = _default_jar_file
 
-    if stop_port is None:
-        stop_port = port + 1000
+        if stop_port is None:
+            stop_port = port + 1000
 
-    pargs = [
-        'java',
-        '-jar',
-        jar_file,
-        '-c', config_dir,
-        '-p', str(port),
-        '-s', str(stop_port)
-    ]
+        self.config_dir = config_dir
+        self.port = port
+        self.jar_file = jar_file
+        self.stop_port = stop_port
+        self.insecure = insecure
 
-    if insecure:
-        pargs.append('-k')
+        pargs = [
+            'java', '-jar', jar_file,
+            '-c', config_dir,
+            '-p', str(port),
+            '-s', str(stop_port)
+        ]
 
-    pargs.append('start')
+        if insecure:
+            pargs.append('-k')
 
-    return subprocess.Popen(pargs)
+        pargs.append('start')
+
+        self.proc = subprocess.Popen(pargs)
 
 
 if __name__ == '__main__':
