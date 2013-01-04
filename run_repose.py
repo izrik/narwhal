@@ -17,6 +17,8 @@ def run():
                         'shutdown command. Default is PORT+1000.')
     parser.add_argument('--insecure', help='Don\'t verify SSL certs.',
                         action='store_true')
+    parser.add_argument('--jar-file', help='The Repose Valve JAR file to run.',
+                        default='usr/share/repose/repose-valve.jar')
 
     args = parser.parse_args()
 
@@ -28,7 +30,7 @@ def run():
     pargs = [
         'java',
         '-jar',
-        'usr/share/repose/repose-valve.jar',
+        args.jar_file,
         '-c', str(args.config_dir),
         '-p', str(args.port),
         '-s', str(args.stop_port)
