@@ -3,6 +3,7 @@
 import argparse
 import subprocess
 
+_default_jar_file = 'usr/share/repose/repose-valve.jar'
 
 def run():
 
@@ -18,7 +19,7 @@ def run():
     parser.add_argument('--insecure', help='Don\'t verify SSL certs.',
                         action='store_true')
     parser.add_argument('--jar-file', help='The Repose Valve JAR file to run.',
-                        default='usr/share/repose/repose-valve.jar')
+                        default=_default_jar_file)
 
     args = parser.parse_args()
 
