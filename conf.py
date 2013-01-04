@@ -85,9 +85,9 @@ def run():
         print 'Available config sets:'
         for cs in available_config_sets:
             print '  %s' % cs
-
-    for cs in requested_config_sets:
-        process_config_set(cs, configs_folder, params)
+    else:
+        for cs in requested_config_sets:
+            process_config_set(cs, configs_folder, params)
 
 
 if __name__ == '__main__':
