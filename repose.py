@@ -38,8 +38,11 @@ class ReposeValve:
         self.proc = subprocess.Popen(pargs, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
 
-    def stop(self):
+    def stop(self, wait=True):
         s = socket.create_connection(('localhost', self.stop_port))
         s.send('stop\r\n')
-        if self.proc.poll() is None:
-            self.proc.communicate()
+        if wait:
+            self.wait()
+
+    def wait(self):
+        return self.proc.communicate()
