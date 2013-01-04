@@ -31,9 +31,7 @@ def run():
                            port=args.port, stop_port=args.stop_port,
                            insecure=args.insecure)
 
-    time.sleep(35)
-
-    r.stop()
+    r.wait()
 
 
 if __name__ == '__main__':
