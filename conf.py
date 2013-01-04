@@ -62,9 +62,10 @@ def run():
     args = parser.parse_args()
 
     params = {}
-    for param in args.param:
-        name, value = param.split('=', 2)
-        params[name] = value
+    if args.param is not None:
+        for param in args.param:
+            name, value = param.split('=', 2)
+            params[name] = value
     args.params = params
 
     # TODO: os.path.join
