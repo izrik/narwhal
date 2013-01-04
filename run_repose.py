@@ -7,6 +7,7 @@ import socket
 
 _default_jar_file = 'usr/share/repose/repose-valve.jar'
 
+
 def run():
 
     parser = argparse.ArgumentParser()
@@ -38,7 +39,8 @@ def run():
 
 
 class ReposeValve:
-    def __init__(self, config_dir, port, jar_file=None, stop_port=None, insecure=False):
+    def __init__(self, config_dir, port, jar_file=None, stop_port=None,
+                 insecure=False):
 
         if jar_file is None:
             jar_file = _default_jar_file
