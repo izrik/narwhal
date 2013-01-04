@@ -26,24 +26,36 @@ def run():
     if args.stop_port is None:
         args.stop_port = int(args.port) + 1000
 
-    print args
+    p1 = start_repose(jar_file=args.jar_file, config_dir=args.config_dir,
+                      port=args.port, stop_port=args.stop_port,
+                      insecure=args.insecure)
+    p1.wait()
+
+
+def start_repose(config_dir, port, jar_file=None, stop_port=None, insecure=False):
+
+    if jar_file is None:
+        jar_file = _default_jar_file
+
+    if stop_port is None:
+        stop_port = port + 1000
 
     pargs = [
         'java',
         '-jar',
-        args.jar_file,
-        '-c', str(args.config_dir),
-        '-p', str(args.port),
-        '-s', str(args.stop_port)
+        jar_file,
+        '-c', config_dir,
+        '-p', str(port),
+        '-s', str(stop_port)
     ]
 
-    if args.insecure:
+    if insecure:
         pargs.append('-k')
 
     pargs.append('start')
 
-    p1 = subprocess.Popen(pargs)
-    p1.wait()
+    return subprocess.Popen(pargs)
+
 
 if __name__ == '__main__':
     run()
