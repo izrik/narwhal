@@ -62,9 +62,10 @@ def run():
     args = parser.parse_args()
 
     params = {}
-    for param in args.param:
-        name, value = param.split('=', 2)
-        params[name] = value
+    if args.param is not None:
+        for param in args.param:
+            name, value = param.split('=', 2)
+            params[name] = value
     args.params = params
 
     # TODO: os.path.join
@@ -84,9 +85,9 @@ def run():
         print 'Available config sets:'
         for cs in available_config_sets:
             print '  %s' % cs
-
-    for cs in requested_config_sets:
-        process_config_set(cs, configs_folder, params)
+    else:
+        for cs in requested_config_sets:
+            process_config_set(cs, configs_folder, params)
 
 
 if __name__ == '__main__':
