@@ -1,4 +1,6 @@
 *.py[cod]
+usr
+etc
 
 # C extensions
 *.so
