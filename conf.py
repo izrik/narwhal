@@ -77,24 +77,22 @@ def run():
 
     # TODO: os.path.join
     configs_folder = '%s/configs' % _script_folder
-    available_config_sets = [cs for cs in get_config_sets(configs_folder)]
 
     requested_config_sets = args.config_sets
 
-    error = False
+    try:
+        for cs in requested_config_sets:
+            if cs not in get_config_sets(configs_folder):
+                raise NamedConfigSetNotFoundException(cs)
 
-    for cs in requested_config_sets:
-        if cs not in available_config_sets:
-            print 'Error: no config set named %s' % cs
-            error = True
-
-    if error:
-        print 'Available config sets:'
-        for cs in available_config_sets:
-            print '  %s' % cs
-    else:
         for cs in requested_config_sets:
             process_config_set(cs, configs_folder, params)
+
+    except NamedConfigSetNotFoundException as e:
+        print 'Error: %s' % str(e)
+        print 'Available config sets:'
+        for cs in get_config_sets(configs_folder):
+            print '  %s' % cs
 
 
 if __name__ == '__main__':
