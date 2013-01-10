@@ -47,6 +47,13 @@ def process_config_set(config_set_name, configs_folder, params={}):
             copy_and_apply_params(file_source, file_dest, params)
 
 
+class NamedConfigSetNotFoundException(Exception):
+    def __init__(self, name):
+        self.name = name
+    def __str__(self):
+        return "No config set named \"%s\" was found." % self.name
+
+
 def run():
     _script_filename = os.path.abspath(inspect.getfile(inspect.currentframe()))
     _script_folder = os.path.dirname(_script_filename)
