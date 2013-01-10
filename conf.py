@@ -16,16 +16,6 @@ def get_config_sets(configs_folder):
                 yield entry
 
 
-def copy_and_apply_params(source, dest, params={}):
-    with open(source, 'r') as input:
-        template = string.Template(input.read())
-
-    with open(dest, 'w') as output:
-        subst = template.safe_substitute(params)
-        # TODO: Warn of un-substituted parameters
-        output.write(subst)
-
-
 def process_config_set(config_set_name, configs_folder, params={}):
     if config_set_name not in get_config_sets(configs_folder):
         raise NamedConfigSetNotFoundException(cs)
@@ -55,6 +45,16 @@ class NamedConfigSetNotFoundException(Exception):
         self.name = name
     def __str__(self):
         return "No config set named \"%s\" was found." % self.name
+
+
+def copy_and_apply_params(source, dest, params={}):
+    with open(source, 'r') as input:
+        template = string.Template(input.read())
+
+    with open(dest, 'w') as output:
+        subst = template.safe_substitute(params)
+        # TODO: Warn of un-substituted parameters
+        output.write(subst)
 
 
 def run():
