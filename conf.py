@@ -27,6 +27,9 @@ def copy_and_apply_params(source, dest, params={}):
 
 
 def process_config_set(config_set_name, configs_folder, params={}):
+    if config_set_name not in get_config_sets(configs_folder):
+        raise NamedConfigSetNotFoundException(cs)
+
     # TODO: os.path.join
     config_xml = et.parse('%s/%s/.config-set.xml' %
                           (configs_folder, config_set_name))
