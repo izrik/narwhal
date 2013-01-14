@@ -74,7 +74,11 @@ def run():
     params = {}
     if args.param is not None:
         for param in args.param:
-            name, value = param.split('=', 2)
+            parts = param.split('=', 2)
+            if len(parts) > 1:
+                name, value = parts
+            else:
+                name, value = parts[0], 'true'
             params[name] = value
     args.params = params
 
