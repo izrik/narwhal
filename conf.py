@@ -66,7 +66,7 @@ def run():
     parser.add_argument('--param', action='append',
                         help='A name/value pair for substitution of template '
                         'parameters.')
-    parser.add_argument(metavar='config-set', nargs='+', dest='config_sets',
+    parser.add_argument(metavar='config-set', dest='config_set',
                         help='A set of configuration files to copy. Must be a '
                         'named config set in the configs/ folder.')
     args = parser.parse_args()
@@ -85,15 +85,10 @@ def run():
     # TODO: os.path.join
     configs_folder = '%s/configs' % _script_folder
 
-    requested_config_sets = args.config_sets
+    config_set = args.config_set
 
     try:
-        for cs in requested_config_sets:
-            if cs not in get_config_sets(configs_folder):
-                raise NamedConfigSetNotFoundException(cs)
-
-        for cs in requested_config_sets:
-            process_config_set(cs, configs_folder, params)
+        process_config_set(config_set, configs_folder, params)
 
     except NamedConfigSetNotFoundException as e:
         print 'Error: %s' % str(e)
