@@ -7,6 +7,7 @@ import sys
 import xml.dom.minidom
 import xml.etree.ElementTree as et
 import requests
+import pathutil
 
 
 def get_artifact_url(root, extension):
@@ -75,7 +76,7 @@ def download_file(url, filename=None):
     if filename is None:
         filename = url.split('/')[-1]
 
-    create_folder(os.path.dirname(filename))
+    pathutil.create_folder(os.path.dirname(filename))
 
     response = requests.get(url)
     if response.status_code != 200:
@@ -91,16 +92,6 @@ def download_file(url, filename=None):
                 count = 0
                 sys.stdout.write('.')
                 sys.stdout.flush()
-
-
-def delete_folder(folder_name):
-    if os.path.exists(folder_name):
-        shutil.rmtree(folder_name)
-
-
-def create_folder(folder_name):
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
 
 
 def run():
