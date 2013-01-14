@@ -53,7 +53,11 @@ def copy_and_apply_params(source, dest, params={}):
 
     with open(dest, 'w') as output:
         subst = template.safe_substitute(params)
-        # TODO: Warn of un-substituted parameters
+        unsubst = template.pattern.findall(subst)
+        for match in unsubst:
+            name = match[1] or match[2] or None
+            if name is not None:
+                print "Warning: Unsubstituted value \"%s\" in template." % name
         output.write(subst)
 
 
