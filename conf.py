@@ -7,6 +7,13 @@ import string
 import xml.etree.ElementTree as et
 
 
+def get_configs_folder():
+    _script_filename = os.path.abspath(inspect.getfile(inspect.currentframe()))
+    _script_folder = os.path.dirname(_script_filename)
+    configs_folder = '%s/configs' % _script_folder
+    return configs_folder
+
+
 def get_config_sets(configs_folder):
     for entry in os.listdir(configs_folder):
         # TODO: os.path.join
@@ -62,9 +69,6 @@ def copy_and_apply_params(source, dest, params={}):
 
 
 def run():
-    _script_filename = os.path.abspath(inspect.getfile(inspect.currentframe()))
-    _script_folder = os.path.dirname(_script_filename)
-
     parser = argparse.ArgumentParser(description='Copy config files',
                                      version='1.0')
     parser.add_argument('--param', action='append',
@@ -87,7 +91,7 @@ def run():
     args.params = params
 
     # TODO: os.path.join
-    configs_folder = '%s/configs' % _script_folder
+    configs_folder = get_configs_folder()
 
     config_set = args.config_set
 
