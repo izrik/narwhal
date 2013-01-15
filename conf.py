@@ -23,7 +23,7 @@ def get_config_sets(configs_folder):
                 yield entry
 
 
-def process_config_set(config_set_name, configs_folder, params={}):
+def process_config_set(config_set_name, configs_folder, params={}, verbose=True):
     if config_set_name not in get_config_sets(configs_folder):
         raise NamedConfigSetNotFoundException(cs)
 
@@ -37,14 +37,17 @@ def process_config_set(config_set_name, configs_folder, params={}):
                                        f.attrib['src'])
             file_basename = os.path.basename(file_source)
             file_dest = os.path.join(folder_path, file_basename)
-            applying = ''
-            if len(params) > 0:
-                # TODO: maybe output parameters provided/substituted?
-                applying = ', applying config parameters'
 
-            print ('Copy from "%s" to "%s"%s' %
-                   (file_source, file_dest, applying))
-            copy_and_apply_params(file_source, file_dest, params)
+            if verbose:
+                applying = ''
+                if len(params) > 0:
+                    # TODO: maybe output parameters provided/substituted?
+                    applying = ', applying config parameters'
+
+                print ('Copy from "%s" to "%s"%s' %
+                       (file_source, file_dest, applying))
+
+            copy_and_apply_params(file_source, file_dest, params, verbose)
 
 
 class NamedConfigSetNotFoundException(Exception):
@@ -54,17 +57,18 @@ class NamedConfigSetNotFoundException(Exception):
         return "No config set named \"%s\" was found." % self.name
 
 
-def copy_and_apply_params(source, dest, params={}):
+def copy_and_apply_params(source, dest, params={}, verbose=True):
     with open(source, 'r') as input:
         template = string.Template(input.read())
 
     with open(dest, 'w') as output:
         subst = template.safe_substitute(params)
         unsubst = template.pattern.findall(subst)
-        for match in unsubst:
-            name = match[1] or match[2] or None
-            if name is not None:
-                print "Warning: Unsubstituted value \"%s\" in template." % name
+        if verbose:
+            for match in unsubst:
+                name = match[1] or match[2] or None
+                if name is not None:
+                    print "Warning: Unsubstituted value \"%s\" in template." % name
         output.write(subst)
 
 
