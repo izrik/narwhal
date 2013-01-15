@@ -23,7 +23,13 @@ def get_config_sets(configs_folder):
                 yield entry
 
 
-def process_config_set(config_set_name, configs_folder, params={}, verbose=True):
+def process_config_set(config_set_name, configs_folder=None, params=None, verbose=True):
+    if configs_folder is None:
+        configs_folder = get_configs_folder()
+
+    if params is None:
+        params = {}
+
     if config_set_name not in get_config_sets(configs_folder):
         raise NamedConfigSetNotFoundException(cs)
 
