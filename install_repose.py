@@ -92,6 +92,46 @@ def download_file(url, filename=None):
                 count = 0
                 sys.stdout.write('.')
                 sys.stdout.flush()
+        print
+
+
+_default_url_root = ('http://maven.research.rackspacecloud.com/'
+                     'content/repositories')
+_default_valve_dest = 'usr/share/repose'
+_default_ear_dest = 'usr/share/repose/filters'
+
+def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
+               get_filter=True, get_ext_filter=True):
+
+    if url_root is None:
+        url_root = _default_url_root
+    if valve_dest is None:
+        valve_dest = _default_valve_dest
+    if ear_dest is None:
+        ear_dest = _default_ear_dest
+
+    if get_valve:
+        vurl = get_repose_valve_url(url_root)
+    if get_filter:
+        furl = get_filter_bundle_url(url_root)
+    if get_ext_filter:
+        eurl = get_extensions_filter_bundle_url(url_root)
+
+    if get_valve:
+        print vurl
+        if vurl:
+            download_file(vurl, os.path.join(valve_dest, 'repose-valve.jar'))
+
+    if get_filter:
+        print furl
+        if furl:
+            download_file(furl, os.path.join(ear_dest, 'filter-bundle.ear'))
+
+    if get_ext_filter:
+        print eurl
+        if eurl:
+            download_file(eurl, os.path.join(ear_dest,
+                                             'extensions-filter-bundle.ear'))
 
 
 def run():
@@ -99,10 +139,10 @@ def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('--valve-dest', help='Folder where you want the '
                         'repose-valve.jar file to go.',
-                        default='usr/share/repose')
+                        default=_default_valve_dest)
     parser.add_argument('--ear-dest', help='Folder where you want the EAR '
                         'filter bundles to go.',
-                        default='usr/share/repose/filters')
+                        default=_default_ear_dest)
     parser.add_argument('--no-valve',
                         help='Don\'t download the valve JAR file',
                         action='store_true')
@@ -113,34 +153,13 @@ def run():
                         action='store_true')
     parser.add_argument('--url-root', help='The url (with path) to download '
                         'artifacts from.',
-                        default="http://maven.research.rackspacecloud.com/"
-                        "content/repositories")
+                        default=_default_url_root)
     args = parser.parse_args()
 
-    if not args.no_valve:
-        vurl = get_repose_valve_url(args.url_root)
-    if not args.no_filter:
-        furl = get_filter_bundle_url(args.url_root)
-    if not args.no_ext_filter:
-        eurl = get_extensions_filter_bundle_url(args.url_root)
-
-    if not args.no_valve:
-        print vurl
-        if vurl:
-            download_file(vurl, os.path.join(args.valve_dest,
-                                             'repose-valve.jar'))
-
-    if not args.no_filter:
-        print furl
-        if furl:
-            download_file(furl, os.path.join(args.ear_dest,
-                                             'filter-bundle.ear'))
-
-    if not args.no_ext_filter:
-        print eurl
-        if eurl:
-            download_file(eurl, os.path.join(args.ear_dest,
-                                             'extensions-filter-bundle.ear'))
+    get_repose(url_root=args.url_root, valve_dest=args.valve_dest,
+               ear_dest=args.ear_dest, get_valve=not args.no_valve,
+               get_filter=not args.no_filter,
+               get_ext_filter=not args.no_ext_filter)
 
 
 if __name__ == '__main__':
