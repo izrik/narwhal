@@ -8,7 +8,7 @@ _default_jar_file = 'usr/share/repose/repose-valve.jar'
 
 
 class ReposeValve:
-    def __init__(self, config_dir, port, jar_file=None, stop_port=None,
+    def __init__(self, config_dir, port=None, jar_file=None, stop_port=None,
                  insecure=False):
 
         if jar_file is None:
@@ -26,9 +26,12 @@ class ReposeValve:
         pargs = [
             'java', '-jar', jar_file,
             '-c', config_dir,
-            '-p', str(port),
             '-s', str(stop_port)
         ]
+
+        if port is not None:
+            pargs.append('-p')
+            pargs.append(str(port))
 
         if insecure:
             pargs.append('-k')
