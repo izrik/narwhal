@@ -10,25 +10,34 @@ import requests
 import pathutil
 
 
-def get_artifact_url(root, extension):
+def get_artifact_url(root, extension, release):
+
     meta = '%s/maven-metadata.xml' % root
     metas = requests.get(meta).text
     metax = et.fromstring(metas)
     artifact_id = metax.find('artifactId').text
-    latest = metax.find('versioning/latest').text
-    version_root = '%s/%s' % (root, latest)
-    meta2 = '%s/maven-metadata.xml' % version_root
-    meta2s = requests.get(meta2).text
-    meta2x = et.fromstring(meta2s)
-    last_updated = meta2x.find('versioning/lastUpdated').text
-    for elem in meta2x.findall('versioning/snapshotVersions/snapshotVersion'):
-        if (elem.find('extension').text == extension and
-                elem.find('updated').text == last_updated):
+    if release:
+        latest = metax.find('versioning/release').text
+        version_root = '%s/%s' % (root, latest)
+        artifact_url = '%s/%s/%s-%s.%s' % (root, latest, artifact_id, latest,
+                                           extension)
+        return artifact_url
 
-            value = elem.find('value').text
-            artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id, value,
-                                            extension)
-            return artifact_url
+    else:
+        latest = metax.find('versioning/latest').text
+        version_root = '%s/%s' % (root, latest)
+        meta2 = '%s/maven-metadata.xml' % version_root
+        meta2s = requests.get(meta2).text
+        meta2x = et.fromstring(meta2s)
+        last_updated = meta2x.find('versioning/lastUpdated').text
+        for elem in meta2x.findall('versioning/snapshotVersions/snapshotVersion'):
+            if (elem.find('extension').text == extension and
+                    elem.find('updated').text == last_updated):
+
+                value = elem.find('value').text
+                artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id, value,
+                                                extension)
+                return artifact_url
 
     return None
 
@@ -41,7 +50,7 @@ def get_repose_valve_url(root, release=False):
 
     vroot = "%s/%s/com/rackspace/papi/core/valve" % (root, s_or_r)
 
-    return get_artifact_url(vroot, 'jar')
+    return get_artifact_url(vroot, 'jar', release=release)
 
 
 def get_filter_bundle_url(root, release=False):
@@ -53,7 +62,7 @@ def get_filter_bundle_url(root, release=False):
     froot = ('%s/%s/com/rackspace/papi/components/filter-bundle' %
              (root, s_or_r))
 
-    f_artifact_url = get_artifact_url(froot, 'ear')
+    f_artifact_url = get_artifact_url(froot, 'ear', release=release)
 
     return f_artifact_url
 
@@ -67,7 +76,7 @@ def get_extensions_filter_bundle_url(root, release=False):
     eroot = ("%s/%s/com/rackspace/papi/components/extensions/"
              "extensions-filter-bundle" % (root, s_or_r))
 
-    e_artifact_url = get_artifact_url(eroot, 'ear')
+    e_artifact_url = get_artifact_url(eroot, 'ear', release=release)
 
     return e_artifact_url
 
@@ -101,7 +110,7 @@ _default_valve_dest = 'usr/share/repose'
 _default_ear_dest = 'usr/share/repose/filters'
 
 def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
-               get_filter=True, get_ext_filter=True):
+               get_filter=True, get_ext_filter=True, release=False):
 
     if url_root is None:
         url_root = _default_url_root
@@ -111,26 +120,28 @@ def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
         ear_dest = _default_ear_dest
 
     if get_valve:
-        vurl = get_repose_valve_url(url_root)
+        vurl = get_repose_valve_url(root=url_root, release=release)
     if get_filter:
-        furl = get_filter_bundle_url(url_root)
+        furl = get_filter_bundle_url(root=url_root, release=release)
     if get_ext_filter:
-        eurl = get_extensions_filter_bundle_url(url_root)
+        eurl = get_extensions_filter_bundle_url(root=url_root, release=release)
 
     if get_valve:
         print vurl
         if vurl:
-            download_file(vurl, os.path.join(valve_dest, 'repose-valve.jar'))
+            download_file(url=vurl, filename=os.path.join(valve_dest,
+                                                          'repose-valve.jar'))
 
     if get_filter:
         print furl
         if furl:
-            download_file(furl, os.path.join(ear_dest, 'filter-bundle.ear'))
+            download_file(url=furl, filename=os.path.join(ear_dest,
+                                                          'filter-bundle.ear'))
 
     if get_ext_filter:
         print eurl
         if eurl:
-            download_file(eurl, os.path.join(ear_dest,
+            download_file(url=eurl, filename=os.path.join(ear_dest,
                                              'extensions-filter-bundle.ear'))
 
 
@@ -154,12 +165,14 @@ def run():
     parser.add_argument('--url-root', help='The url (with path) to download '
                         'artifacts from.',
                         default=_default_url_root)
+    parser.add_argument('--release', help='Download a release build instead '
+                        'of a SNAPSHOT build.', action='store_true')
     args = parser.parse_args()
 
     get_repose(url_root=args.url_root, valve_dest=args.valve_dest,
                ear_dest=args.ear_dest, get_valve=not args.no_valve,
                get_filter=not args.no_filter,
-               get_ext_filter=not args.no_ext_filter)
+               get_ext_filter=not args.no_ext_filter, release=args.release)
 
 
 if __name__ == '__main__':
