@@ -23,7 +23,8 @@ def get_config_sets(configs_folder):
                 yield entry
 
 
-def process_config_set(config_set_name, configs_folder=None, params=None, verbose=True):
+def process_config_set(config_set_name, destination_path=None,
+                       configs_folder=None, params=None, verbose=True):
     if configs_folder is None:
         configs_folder = get_configs_folder()
 
@@ -42,7 +43,11 @@ def process_config_set(config_set_name, configs_folder=None, params=None, verbos
             file_source = os.path.join(configs_folder, config_set_name,
                                        f.attrib['src'])
             file_basename = os.path.basename(file_source)
-            file_dest = os.path.join(folder_path, file_basename)
+            if destination_path:
+                file_dest = os.path.join(destination_path, folder_path,
+                                         file_basename)
+            else:
+                file_dest = os.path.join(folder_path, file_basename)
 
             if verbose:
                 applying = ''
@@ -87,6 +92,8 @@ def run():
     parser.add_argument(metavar='config-set', dest='config_set',
                         help='A set of configuration files to copy. Must be a '
                         'named config set in the configs/ folder.')
+    parser.add_argument('--dest-path', dest='dest_path',
+                        help='Where to put the files.')
     args = parser.parse_args()
 
     params = {}
@@ -104,9 +111,12 @@ def run():
     configs_folder = get_configs_folder()
 
     config_set = args.config_set
+    dest_path = args.dest_path
 
     try:
-        process_config_set(config_set, configs_folder, params)
+        process_config_set(config_set_name=config_set,
+                           configs_folder=configs_folder, params=params,
+                           destination_path=dest_path)
 
     except NamedConfigSetNotFoundException as e:
         print 'Error: %s' % str(e)
