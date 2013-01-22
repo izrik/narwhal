@@ -5,6 +5,7 @@ import inspect
 import os
 import string
 import xml.etree.ElementTree as et
+import pathutil
 
 
 def get_configs_folder():
@@ -43,11 +44,16 @@ def process_config_set(config_set_name, destination_path=None,
             file_source = os.path.join(configs_folder, config_set_name,
                                        f.attrib['src'])
             file_basename = os.path.basename(file_source)
-            if destination_path:
-                file_dest = os.path.join(destination_path, folder_path,
-                                         file_basename)
+            if destination_path and folder_path:
+                full_dest = os.path.join(destination_path, folder_path)
+            elif destination_path:
+                full_dest = destination_path
+            elif folder_path:
+                full_dest = folder_path
             else:
-                file_dest = os.path.join(folder_path, file_basename)
+                full_dest = '.'
+            pathutil.create_folder(full_dest)
+            file_dest = os.path.join(full_dest, file_basename)
 
             if verbose:
                 applying = ''
