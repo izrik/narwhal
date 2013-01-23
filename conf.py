@@ -17,10 +17,9 @@ def get_configs_folder():
 
 def get_config_sets(configs_folder):
     for entry in os.listdir(configs_folder):
-        # TODO: os.path.join
         if os.path.isdir('%s/%s' % (configs_folder, entry)):
-            if os.path.exists('%s/%s/%s' %
-                              (configs_folder, entry, '.config-set.xml')):
+            if os.path.exists(pathutil.join(configs_folder, entry,
+                                            '.config-set.xml')):
                 yield entry
 
 
@@ -40,18 +39,18 @@ def process_config_set(config_set_name, destination_path=None,
             configs_folder = get_configs_folder()
         if config_set_name not in get_config_sets(configs_folder):
             raise NamedConfigSetNotFoundException(config_set_name)
-        filename = os.path.join(configs_folder, config_set_name,
+        filename = pathutil.join(configs_folder, config_set_name,
                                 '.config-set.xml')
         config_xml = et.parse(filename)
-        source_context = os.path.join(configs_folder, config_set_name)
+        source_context = pathutil.join(configs_folder, config_set_name)
 
     for folder in config_xml.findall('folder'):
         folder_path = folder.attrib.get('path', '.')
         for f in folder.findall('file'):
-            file_source = os.path.join(source_context, f.attrib['src'])
+            file_source = pathutil.join(source_context, f.attrib['src'])
             file_basename = os.path.basename(file_source)
             if destination_path and folder_path:
-                full_dest = os.path.join(destination_path, folder_path)
+                full_dest = pathutil.join(destination_path, folder_path)
             elif destination_path:
                 full_dest = destination_path
             elif folder_path:
@@ -59,7 +58,7 @@ def process_config_set(config_set_name, destination_path=None,
             else:
                 full_dest = '.'
             pathutil.create_folder(full_dest)
-            file_dest = os.path.join(full_dest, file_basename)
+            file_dest = pathutil.join(full_dest, file_basename)
 
             if verbose:
                 applying = ''
@@ -119,7 +118,6 @@ def run():
             params[name] = value
     args.params = params
 
-    # TODO: os.path.join
     configs_folder = get_configs_folder()
 
     config_set = args.config_set
