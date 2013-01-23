@@ -26,23 +26,29 @@ def get_config_sets(configs_folder):
 
 def process_config_set(config_set_name, destination_path=None,
                        configs_folder=None, params=None, verbose=True):
-    if configs_folder is None:
-        configs_folder = get_configs_folder()
 
     if params is None:
         params = {}
 
-    if config_set_name not in get_config_sets(configs_folder):
-        raise NamedConfigSetNotFoundException(cs)
+    if os.path.isfile(config_set_name):
+        # it's a file
+        config_xml = et.parse(config_set_name)
+        source_context = os.path.dirname(config_set_name)
+    else:
+        # try a named config set in the configs folder
+        if configs_folder is None:
+            configs_folder = get_configs_folder()
+        if config_set_name not in get_config_sets(configs_folder):
+            raise NamedConfigSetNotFoundException(config_set_name)
+        filename = os.path.join(configs_folder, config_set_name,
+                                '.config-set.xml')
+        config_xml = et.parse(filename)
+        source_context = os.path.join(configs_folder, config_set_name)
 
-    # TODO: os.path.join
-    config_xml = et.parse('%s/%s/.config-set.xml' %
-                          (configs_folder, config_set_name))
     for folder in config_xml.findall('folder'):
         folder_path = folder.attrib.get('path', '.')
         for f in folder.findall('file'):
-            file_source = os.path.join(configs_folder, config_set_name,
-                                       f.attrib['src'])
+            file_source = os.path.join(source_context, f.attrib['src'])
             file_basename = os.path.basename(file_source)
             if destination_path and folder_path:
                 full_dest = os.path.join(destination_path, folder_path)
