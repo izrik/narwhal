@@ -1,8 +1,27 @@
 #!/usr/bin/env python
 
+# Copyright (C) 2012-2013 Richard Sartor <richard.sartor@rackspace.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+
 import subprocess
 import socket
 import logging
+import threading
+import Queue
+import time
 
 
 logger = logging.getLogger(__name__)
@@ -47,9 +66,10 @@ class ReposeValve:
 
         self.proc = subprocess.Popen(pargs, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
+        self.stdout = ThreadedStreamReader(self.proc.stdout)
+        self.stderr = ThreadedStreamReader(self.proc.stderr)
         logger.debug('New ReposeValve object initialized (pid=%i)' %
                      self.proc.pid)
-
 
     def stop(self, wait=True):
         try:
@@ -69,3 +89,35 @@ class ReposeValve:
 
     def wait(self):
         return self.proc.communicate()
+
+
+class ThreadedStreamReader:
+    def __init__(self, stream):
+        self.stream = stream
+        self.thread = threading.Thread(target=self.thread_target)
+        self.thread.daemon = True
+        self.thread.start()
+        self.queue = Queue.Queue()
+
+    def thread_target(self):
+        for line in self.stream.xreadlines():
+            self.queue.put(line)
+
+    def readline(self, timeout=None):
+        s = self.queue.get(timeout=timeout)
+        self.queue.task_done()
+        return s
+
+    def readlines(self):
+        lines = []
+        while not self.queue.empty():
+            lines.append(self.readline())
+        return lines
+
+
+def stream_printer(fin, fout):
+    while True:
+        for line in fin.readlines():
+            fout.write(line)
+            fout.flush()
+        time.sleep(1)
