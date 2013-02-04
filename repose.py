@@ -47,9 +47,10 @@ class ReposeValve:
 
         self.proc = subprocess.Popen(pargs, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
+        self.stdout = self.proc.stdout
+        self.stderr = self.proc.stderr
         logger.debug('New ReposeValve object initialized (pid=%i)' %
                      self.proc.pid)
-
 
     def stop(self, wait=True):
         try:
