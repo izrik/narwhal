@@ -31,8 +31,8 @@ _default_jar_file = 'usr/share/repose/repose-valve.jar'
 
 
 class ReposeValve:
-    def __init__(self, config_dir, port=None, jar_file=None, stop_port=None,
-                 insecure=False):
+    def __init__(self, config_dir, port=None, https_port=None, jar_file=None,
+                 stop_port=None, insecure=False):
         logger.debug('Creating new ReposeValve object (config_dir=%s, '
                      'jar_file=%s, stop_port=%s, insecure=%s)' %
                      (config_dir, jar_file, stop_port, insecure))
@@ -41,7 +41,10 @@ class ReposeValve:
             jar_file = _default_jar_file
 
         if stop_port is None:
-            stop_port = port + 1000
+            if port is None:
+                stop_port = 9090
+            else:
+                stop_port = port + 1000
 
         self.config_dir = config_dir
         self.port = port
@@ -58,6 +61,10 @@ class ReposeValve:
         if port is not None:
             pargs.append('-p')
             pargs.append(str(port))
+
+        if https_port is not None:
+            pargs.append('-ps')
+            pargs.append(str(https_port))
 
         if insecure:
             pargs.append('-k')
