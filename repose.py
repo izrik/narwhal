@@ -3,6 +3,7 @@
 import subprocess
 import socket
 import logging
+import threading
 
 
 logger = logging.getLogger(__name__)
@@ -14,6 +15,12 @@ _default_jar_file = 'usr/share/repose/repose-valve.jar'
 class ThreadedStreamReader:
     def __init__(self, stream):
         self.stream = stream
+        self.thread = threading.Thread(target=self.thread_target)
+        self.thread.daemon = True
+        self.thread.start()
+
+    def thread_target(self):
+        pass
 
     def readline(self):
         pass
