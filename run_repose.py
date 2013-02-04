@@ -14,6 +14,9 @@ def run():
     parser.add_argument('--port', type=int,
                         help='The port on which Repose will listen for '
                         'requests.')
+    parser.add_argument('--https-port', type=int,
+                        help='The port on which Repose will listen for '
+                        'requests.')
     parser.add_argument('--stop-port', type=int, default=None,
                         help='The port on which Repose will listen for the '
                         'shutdown command. Default is PORT+1000.')
@@ -31,8 +34,8 @@ def run():
             args.stop_port = int(args.port) + 1000
 
     r = repose.ReposeValve(jar_file=args.jar_file, config_dir=args.config_dir,
-                           port=args.port, stop_port=args.stop_port,
-                           insecure=args.insecure)
+                           port=args.port, https_port=args.https_port,
+                           stop_port=args.stop_port, insecure=args.insecure)
 
     r.wait()
 
