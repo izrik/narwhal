@@ -14,38 +14,6 @@ logger = logging.getLogger(__name__)
 _default_jar_file = 'usr/share/repose/repose-valve.jar'
 
 
-class ThreadedStreamReader:
-    def __init__(self, stream):
-        self.stream = stream
-        self.thread = threading.Thread(target=self.thread_target)
-        self.thread.daemon = True
-        self.thread.start()
-        self.queue = Queue.Queue()
-
-    def thread_target(self):
-        for line in self.stream.xreadlines():
-            self.queue.put(line)
-
-    def readline(self, timeout=None):
-        s = self.queue.get(timeout=timeout)
-        self.queue.task_done()
-        return s
-
-    def readlines(self):
-        lines = []
-        while not self.queue.empty():
-            lines.append(self.readline())
-        return lines
-
-
-def stream_printer(fin, fout):
-    while True:
-        for line in fin.readlines():
-            fout.write(line)
-            fout.flush()
-        time.sleep(1)
-
-
 class ReposeValve:
     def __init__(self, config_dir, port=None, jar_file=None, stop_port=None,
                  insecure=False):
@@ -105,3 +73,35 @@ class ReposeValve:
 
     def wait(self):
         return self.proc.communicate()
+
+
+class ThreadedStreamReader:
+    def __init__(self, stream):
+        self.stream = stream
+        self.thread = threading.Thread(target=self.thread_target)
+        self.thread.daemon = True
+        self.thread.start()
+        self.queue = Queue.Queue()
+
+    def thread_target(self):
+        for line in self.stream.xreadlines():
+            self.queue.put(line)
+
+    def readline(self, timeout=None):
+        s = self.queue.get(timeout=timeout)
+        self.queue.task_done()
+        return s
+
+    def readlines(self):
+        lines = []
+        while not self.queue.empty():
+            lines.append(self.readline())
+        return lines
+
+
+def stream_printer(fin, fout):
+    while True:
+        for line in fin.readlines():
+            fout.write(line)
+            fout.flush()
+        time.sleep(1)
