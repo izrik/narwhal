@@ -3,6 +3,9 @@
 import subprocess
 import socket
 import logging
+import threading
+import Queue
+import time
 
 
 logger = logging.getLogger(__name__)
@@ -47,8 +50,8 @@ class ReposeValve:
 
         self.proc = subprocess.Popen(pargs, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
-        self.stdout = self.proc.stdout
-        self.stderr = self.proc.stderr
+        self.stdout = ThreadedStreamReader(self.proc.stdout)
+        self.stderr = ThreadedStreamReader(self.proc.stderr)
         logger.debug('New ReposeValve object initialized (pid=%i)' %
                      self.proc.pid)
 
@@ -70,3 +73,35 @@ class ReposeValve:
 
     def wait(self):
         return self.proc.communicate()
+
+
+class ThreadedStreamReader:
+    def __init__(self, stream):
+        self.stream = stream
+        self.thread = threading.Thread(target=self.thread_target)
+        self.thread.daemon = True
+        self.thread.start()
+        self.queue = Queue.Queue()
+
+    def thread_target(self):
+        for line in self.stream.xreadlines():
+            self.queue.put(line)
+
+    def readline(self, timeout=None):
+        s = self.queue.get(timeout=timeout)
+        self.queue.task_done()
+        return s
+
+    def readlines(self):
+        lines = []
+        while not self.queue.empty():
+            lines.append(self.readline())
+        return lines
+
+
+def stream_printer(fin, fout):
+    while True:
+        for line in fin.readlines():
+            fout.write(line)
+            fout.flush()
+        time.sleep(1)
