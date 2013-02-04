@@ -73,6 +73,10 @@ class ReposeValve:
 
     def stop(self, wait=True):
         try:
+            logger.debug('Shutting down stdout and stderr readers.')
+            self.stdout.shutdown()
+            self.stderr.shutdown()
+
             logger.debug('Attempting to stop ReposeValve object (pid=%i, '
                          'stop_port=%s)' % (self.proc.pid, self.stop_port))
             s = socket.create_connection(('localhost', self.stop_port))
@@ -94,13 +98,16 @@ class ReposeValve:
 class ThreadedStreamReader:
     def __init__(self, stream):
         self.stream = stream
-        self.thread = threading.Thread(target=self.thread_target)
+        self.thread = threading.Thread(target=self._thread_target)
         self.thread.daemon = True
         self.thread.start()
         self.queue = Queue.Queue()
+        self._shutdown = False
 
-    def thread_target(self):
+    def _thread_target(self):
         for line in self.stream.xreadlines():
+            if self._shutdown:
+                break
             self.queue.put(line)
 
     def readline(self, timeout=None):
@@ -113,6 +120,9 @@ class ThreadedStreamReader:
         while not self.queue.empty():
             lines.append(self.readline())
         return lines
+
+    def shutdown(self):
+        self._shutdown = True
 
 
 def stream_printer(fin, fout):
