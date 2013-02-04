@@ -11,6 +11,17 @@ logger = logging.getLogger(__name__)
 _default_jar_file = 'usr/share/repose/repose-valve.jar'
 
 
+class ThreadedStreamReader:
+    def __init__(self, stream):
+        self.stream = stream
+
+    def readline(self):
+        pass
+
+    def readlines(self):
+        pass
+
+
 class ReposeValve:
     def __init__(self, config_dir, port=None, jar_file=None, stop_port=None,
                  insecure=False):
@@ -47,8 +58,8 @@ class ReposeValve:
 
         self.proc = subprocess.Popen(pargs, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
-        self.stdout = self.proc.stdout
-        self.stderr = self.proc.stderr
+        self.stdout = ThreadedStreamReader(self.proc.stdout)
+        self.stderr = ThreadedStreamReader(self.proc.stderr)
         logger.debug('New ReposeValve object initialized (pid=%i)' %
                      self.proc.pid)
 
