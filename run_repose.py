@@ -11,7 +11,7 @@ def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('config_dir',
                         help='The location of the Repose config directory.')
-    parser.add_argument('port', type=int,
+    parser.add_argument('--port', type=int,
                         help='The port on which Repose will listen for '
                         'requests.')
     parser.add_argument('--stop-port', type=int, default=None,
@@ -25,7 +25,10 @@ def run():
     args = parser.parse_args()
 
     if args.stop_port is None:
-        args.stop_port = int(args.port) + 1000
+        if args.port is None:
+            args.stop_port = 9090
+        else:
+            args.stop_port = int(args.port) + 1000
 
     r = repose.ReposeValve(jar_file=args.jar_file, config_dir=args.config_dir,
                            port=args.port, stop_port=args.stop_port,
