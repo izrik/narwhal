@@ -4,6 +4,8 @@ import subprocess
 import socket
 import logging
 import threading
+import Queue
+import time
 
 
 logger = logging.getLogger(__name__)
@@ -18,15 +20,30 @@ class ThreadedStreamReader:
         self.thread = threading.Thread(target=self.thread_target)
         self.thread.daemon = True
         self.thread.start()
+        self.queue = Queue.Queue()
 
     def thread_target(self):
-        pass
+        for line in self.stream.xreadlines():
+            self.queue.put(line)
 
-    def readline(self):
-        pass
+    def readline(self, timeout=None):
+        s = self.queue.get(timeout=timeout)
+        self.queue.task_done()
+        return s
 
     def readlines(self):
-        pass
+        lines = []
+        while not self.queue.empty():
+            lines.append(self.readline())
+        return lines
+
+
+def stream_printer(fin, fout):
+    while True:
+        for line in fin.readlines():
+            fout.write(line)
+            fout.flush()
+        time.sleep(1)
 
 
 class ReposeValve:
