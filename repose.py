@@ -71,6 +71,8 @@ class ReposeValve:
 
         pargs.append('start')
 
+        logger.debug('Starting valve with the following commonad line: "%s"' % ' '.join(pargs))
+
         self.proc = subprocess.Popen(pargs, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
         self.stdout = ThreadedStreamReader(self.proc.stdout)
