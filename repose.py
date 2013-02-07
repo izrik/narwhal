@@ -31,8 +31,8 @@ _default_jar_file = 'usr/share/repose/repose-valve.jar'
 
 
 class ReposeValve:
-    def __init__(self, config_dir, port=None, jar_file=None, stop_port=None,
-                 insecure=False):
+    def __init__(self, config_dir, port=None, https_port=None, jar_file=None,
+                 stop_port=None, insecure=False):
         logger.debug('Creating new ReposeValve object (config_dir=%s, '
                      'jar_file=%s, stop_port=%s, insecure=%s)' %
                      (config_dir, jar_file, stop_port, insecure))
@@ -41,7 +41,10 @@ class ReposeValve:
             jar_file = _default_jar_file
 
         if stop_port is None:
-            stop_port = port + 1000
+            if port is None:
+                stop_port = 9090
+            else:
+                stop_port = port + 1000
 
         self.config_dir = config_dir
         self.port = port
@@ -59,10 +62,16 @@ class ReposeValve:
             pargs.append('-p')
             pargs.append(str(port))
 
+        if https_port is not None:
+            pargs.append('-ps')
+            pargs.append(str(https_port))
+
         if insecure:
             pargs.append('-k')
 
         pargs.append('start')
+
+        logger.debug('Starting valve with the following commonad line: "%s"' % ' '.join(pargs))
 
         self.proc = subprocess.Popen(pargs, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
@@ -73,6 +82,10 @@ class ReposeValve:
 
     def stop(self, wait=True):
         try:
+            logger.debug('Shutting down stdout and stderr readers.')
+            self.stdout.shutdown()
+            self.stderr.shutdown()
+
             logger.debug('Attempting to stop ReposeValve object (pid=%i, '
                          'stop_port=%s)' % (self.proc.pid, self.stop_port))
             s = socket.create_connection(('localhost', self.stop_port))
@@ -94,13 +107,16 @@ class ReposeValve:
 class ThreadedStreamReader:
     def __init__(self, stream):
         self.stream = stream
-        self.thread = threading.Thread(target=self.thread_target)
+        self.thread = threading.Thread(target=self._thread_target)
         self.thread.daemon = True
         self.thread.start()
         self.queue = Queue.Queue()
+        self._shutdown = False
 
-    def thread_target(self):
+    def _thread_target(self):
         for line in self.stream.xreadlines():
+            if self._shutdown:
+                break
             self.queue.put(line)
 
     def readline(self, timeout=None):
@@ -113,6 +129,9 @@ class ThreadedStreamReader:
         while not self.queue.empty():
             lines.append(self.readline())
         return lines
+
+    def shutdown(self):
+        self._shutdown = True
 
 
 def stream_printer(fin, fout):
