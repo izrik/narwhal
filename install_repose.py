@@ -127,17 +127,21 @@ def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
     if get_ext_filter:
         eurl = get_extensions_filter_bundle_url(root=url_root, release=release)
 
+    filenames = {}
+
     if get_valve:
         print vurl
         if vurl:
             valve_filename = os.path.join(valve_dest, 'repose-valve.jar')
             valve_filename = download_file(url=vurl, filename=valve_filename)
+            filenames["valve"] = valve_filename
 
     if get_filter:
         print furl
         if furl:
             filter_filename = os.path.join(ear_dest, 'filter-bundle.ear')
             filter_filename = download_file(url=furl, filename=filter_filename)
+            filenames["filter"] = filter_filename
 
     if get_ext_filter:
         print eurl
@@ -146,6 +150,9 @@ def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
                                                'extensions-filter-bundle.ear')
             ext_filter_filename = download_file(url=eurl,
                                                 filename=ext_filter_filename)
+            filenames["ext_filter"] = ext_filter_filename
+
+    return filenames
 
 
 def run():
