@@ -102,6 +102,7 @@ def download_file(url, filename=None):
                 sys.stdout.write('.')
                 sys.stdout.flush()
         print
+    return filename
 
 
 _default_url_root = ('http://maven.research.rackspacecloud.com/'
@@ -126,23 +127,32 @@ def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
     if get_ext_filter:
         eurl = get_extensions_filter_bundle_url(root=url_root, release=release)
 
+    filenames = {}
+
     if get_valve:
         print vurl
         if vurl:
-            download_file(url=vurl, filename=os.path.join(valve_dest,
-                                                          'repose-valve.jar'))
+            valve_filename = os.path.join(valve_dest, 'repose-valve.jar')
+            valve_filename = download_file(url=vurl, filename=valve_filename)
+            filenames["valve"] = valve_filename
 
     if get_filter:
         print furl
         if furl:
-            download_file(url=furl, filename=os.path.join(ear_dest,
-                                                          'filter-bundle.ear'))
+            filter_filename = os.path.join(ear_dest, 'filter-bundle.ear')
+            filter_filename = download_file(url=furl, filename=filter_filename)
+            filenames["filter"] = filter_filename
 
     if get_ext_filter:
         print eurl
         if eurl:
-            download_file(url=eurl, filename=os.path.join(ear_dest,
-                                             'extensions-filter-bundle.ear'))
+            ext_filter_filename = os.path.join(ear_dest,
+                                               'extensions-filter-bundle.ear')
+            ext_filter_filename = download_file(url=eurl,
+                                                filename=ext_filter_filename)
+            filenames["ext_filter"] = ext_filter_filename
+
+    return filenames
 
 
 def run():
