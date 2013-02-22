@@ -7,13 +7,13 @@ import time
 import paramiko
 import getpass
 
-def run():
+def create_server():
     # TODO: get credentials from command line
     pyrax.set_credential_file(os.path.expanduser('~/repose2.creds'))
 
     cs = pyrax.cloudservers
 
-    centos_image = [img for img in cs.images.list() if "CentOS 6.3" in img.name][0]
+    image = [img for img in cs.images.list() if "CentOS 6.3" in img.name][0]
     flavor = [f for f in cs.flavors.list() if f.ram == 1024][0]
 
     t = time.localtime()
@@ -24,7 +24,7 @@ def run():
     server_name = '%s-%s-%s' % (name_prefix, date_string, whoami)
 
     server = cs.servers.create(name=server_name,
-                               image=centos_image, flavor=flavor)
+                               image=image, flavor=flavor)
 
     print time.asctime()
     n = 0
@@ -87,6 +87,9 @@ def run():
 
     stdio = exec_command2('pip-python install virtualenv')
 
+
+def run():
+    create_server()
 
 if __name__ == '__main__':
     run()
