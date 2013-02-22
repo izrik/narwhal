@@ -7,6 +7,7 @@ import time
 import paramiko
 import getpass
 
+
 def create_server(credential_file=None, username=None, api_key=None):
     """Create a Server."""
 
@@ -31,8 +32,9 @@ def create_server(credential_file=None, username=None, api_key=None):
     flavor = [f for f in cs.flavors.list() if f.ram == 1024][0]
 
     t = time.localtime()
-    date_string = '%d-%02d-%02d-%02d-%02d-%02d' % (t.tm_year, t.tm_mon, t.tm_mday,
-                                                   t.tm_hour, t.tm_min, t.tm_sec)
+    date_string = '%d-%02d-%02d-%02d-%02d-%02d' % (t.tm_year, t.tm_mon,
+                                                   t.tm_mday, t.tm_hour,
+                                                   t.tm_min, t.tm_sec)
     name_prefix = 'repose-qe-test-prevent-xxe'
     whoami = getpass.getuser()
     server_name = '%s-%s-%s' % (name_prefix, date_string, whoami)
@@ -61,7 +63,8 @@ def create_server(credential_file=None, username=None, api_key=None):
     print 'password: %s' % password
     ips = server2.networks['public']
 
-    os.system('ssh-keyscan %s 2>/dev/null >> ~/.ssh/known_hosts' % ' '.join(ips))
+    os.system('ssh-keyscan %s 2>/dev/null >> ~/.ssh/known_hosts' %
+              ' '.join(ips))
 
     ssh_client = paramiko.SSHClient()
     ssh_client.load_system_host_keys()
@@ -70,7 +73,8 @@ def create_server(credential_file=None, username=None, api_key=None):
 
     for ip in ips:
         try:
-            ssh_client.connect(hostname=ip, username=username, password=password)
+            ssh_client.connect(hostname=ip, username=username,
+                               password=password)
             connected = True
             break
         except:
@@ -78,7 +82,6 @@ def create_server(credential_file=None, username=None, api_key=None):
 
     if not connected:
         raise Exception("Could not connect")
-
 
     def readfile(file):
         try:
@@ -103,7 +106,8 @@ def create_server(credential_file=None, username=None, api_key=None):
 
 
 def run():
-    parser = argparse.ArgumentParser(description="Create a server and install Repose on it.")
+    parser = argparse.ArgumentParser(description="Create a server and install "
+                                     "Repose on it.")
     parser.add_argument('--credential-file',
                         help="Specify credentials to use to authenticate to "
                         "the compute service")
@@ -121,7 +125,8 @@ def run():
     if args.username and not args.api_key:
         raise ValueError("No API key specified")
 
-    create_server(credential_file=args.credential_file, username=args.username, api_key=args.api_key)
+    create_server(credential_file=args.credential_file, username=args.username,
+                  api_key=args.api_key)
 
 if __name__ == '__main__':
     run()

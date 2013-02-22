@@ -82,7 +82,8 @@ class ReposeValve:
 
         pargs.append('start')
 
-        logger.debug('Starting valve with the following commonad line: "%s"' % ' '.join(pargs))
+        logger.debug('Starting valve with the following commonad line: "%s"' %
+                     ' '.join(pargs))
 
         self.proc = subprocess.Popen(pargs, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
@@ -101,7 +102,7 @@ class ReposeValve:
                 time.sleep(1)
                 wait_count += 1
                 if wait_count > 30:
-                    break;
+                    break
 
         logger.debug('New ReposeValve object initialized (pid=%i)' %
                      self.proc.pid)

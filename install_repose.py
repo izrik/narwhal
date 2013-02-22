@@ -30,13 +30,14 @@ def get_artifact_url(root, extension, release):
         meta2s = requests.get(meta2).text
         meta2x = et.fromstring(meta2s)
         last_updated = meta2x.find('versioning/lastUpdated').text
-        for elem in meta2x.findall('versioning/snapshotVersions/snapshotVersion'):
+        for elem in meta2x.findall('versioning/snapshotVersions/'
+                                   'snapshotVersion'):
             if (elem.find('extension').text == extension and
                     elem.find('updated').text == last_updated):
 
                 value = elem.find('value').text
-                artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id, value,
-                                                extension)
+                artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id,
+                                                value, extension)
                 return artifact_url
 
     return None
@@ -109,6 +110,7 @@ _default_url_root = ('http://maven.research.rackspacecloud.com/'
                      'content/repositories')
 _default_valve_dest = 'usr/share/repose'
 _default_ear_dest = 'usr/share/repose/filters'
+
 
 def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
                get_filter=True, get_ext_filter=True, release=False):
