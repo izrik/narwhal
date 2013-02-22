@@ -7,9 +7,23 @@ import time
 import paramiko
 import getpass
 
-def create_server():
+def create_server(credential_file=None, username=None, api_key=None):
+    """Create a Server."""
+
+    if not (username or api_key or credential_file):
+        raise ValueError("No credentials specified")
+    if credential_file and (username or api_key):
+        raise ValueError("Conflicting credential options specified.")
+    if api_key and not username:
+        raise ValueError("No username specified")
+    if username and not api_key:
+        raise ValueError("No API key specified")
+
     # TODO: get credentials from command line
-    pyrax.set_credential_file(os.path.expanduser('~/repose2.creds'))
+    if credential_file:
+        pyrax.set_credential_file(credential_file)
+    else:
+        pyrax.set_credentials(username=username, api_key=api_key)
 
     cs = pyrax.cloudservers
 
@@ -89,7 +103,25 @@ def create_server():
 
 
 def run():
-    create_server()
+    parser = argparse.ArgumentParser(description="Create a server and install Repose on it.")
+    parser.add_argument('--credential-file',
+                        help="Specify credentials to use to authenticate to "
+                        "the compute service")
+    parser.add_argument('--username')
+    parser.add_argument('--api-key')
+
+    args = parser.parse_args()
+
+    if args.credential_file and (args.username or args.api_key):
+        raise ValueError("Conflicting credential options specified.")
+    if args.api_key and not args.username:
+        raise ValueError("No username specified")
+    if not (args.username or args.api_key or args.credential_file):
+        raise ValueError("No credentials specified")
+    if args.username and not args.api_key:
+        raise ValueError("No API key specified")
+
+    create_server(credential_file=args.credential_file, username=args.username, api_key=args.api_key)
 
 if __name__ == '__main__':
     run()
