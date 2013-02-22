@@ -22,6 +22,7 @@ import logging
 import threading
 import Queue
 import time
+import requests
 
 
 logger = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ _default_jar_file = 'usr/share/repose/repose-valve.jar'
 
 class ReposeValve:
     def __init__(self, config_dir, port=None, https_port=None, jar_file=None,
-                 stop_port=None, insecure=False):
+                 stop_port=None, insecure=False, wait_on_start=False):
         logger.debug('Creating new ReposeValve object (config_dir=%s, '
                      'jar_file=%s, stop_port=%s, insecure=%s)' %
                      (config_dir, jar_file, stop_port, insecure))
@@ -45,6 +46,16 @@ class ReposeValve:
                 stop_port = 9090
             else:
                 stop_port = port + 1000
+
+        if wait_on_start:
+            if port is not None:
+                wait_url = 'http://localhost:%s/' % str(port)
+            elif https_port is not None:
+                wait_url = 'https://localhost:%s' % str(https_port)
+            else:
+                raise ValueError("Either 'port' and/or 'https_port' must "
+                                 "specify a port number if 'wait_on_start' is "
+                                 "True")
 
         self.config_dir = config_dir
         self.port = port
@@ -77,6 +88,21 @@ class ReposeValve:
                                      stderr=subprocess.PIPE)
         self.stdout = ThreadedStreamReader(self.proc.stdout)
         self.stderr = ThreadedStreamReader(self.proc.stderr)
+
+        if wait_on_start:
+            wait_count = 0
+            while True:
+                try:
+                    sc = requests.get(wait_url)
+                    if int(sc) == 200:
+                        break
+                except:
+                    pass
+                time.sleep(1)
+                wait_count += 1
+                if wait_count > 30:
+                    break;
+
         logger.debug('New ReposeValve object initialized (pid=%i)' %
                      self.proc.pid)
 
