@@ -9,7 +9,8 @@ import getpass
 
 
 def create_server(credential_file=None, username=None, api_key=None,
-                  image=None, flavor=None):
+                  image=None, flavor=None, server_name=None,
+                  server_name_prefix=None):
     """Create a Server."""
 
     if not (username or api_key or credential_file):
@@ -33,15 +34,17 @@ def create_server(credential_file=None, username=None, api_key=None,
         image = [img for img in cs.images.list()
                  if "CentOS 6.3" in img.name][0]
     if flavor is None:
-        flavor = [f for f in cs.flavors.list() if f.ram == 1024][0]
+        flavor = [fl for fl in cs.flavors.list() if fl.ram == 1024][0]
 
-    t = time.localtime()
-    date_string = '%d-%02d-%02d-%02d-%02d-%02d' % (t.tm_year, t.tm_mon,
-                                                   t.tm_mday, t.tm_hour,
-                                                   t.tm_min, t.tm_sec)
-    name_prefix = 'repose-qe-test-prevent-xxe'
-    whoami = getpass.getuser()
-    server_name = '%s-%s-%s' % (name_prefix, date_string, whoami)
+    if server_name is None:
+        t = time.localtime()
+        date_string = '%d-%02d-%02d-%02d-%02d-%02d' % (t.tm_year, t.tm_mon,
+                                                       t.tm_mday, t.tm_hour,
+                                                       t.tm_min, t.tm_sec)
+        whoami = getpass.getuser()
+        if server_name_prefix is None:
+            server_name_prefix = 'repose'
+        server_name = '%s-%s-%s' % (server_name_prefix, date_string, whoami)
 
     server = cs.servers.create(name=server_name,
                                image=image, flavor=flavor)
@@ -127,6 +130,7 @@ def run():
     parser.add_argument('--api-key')
     parser.add_argument('--image')
     parser.add_argument('--flavor')
+    parser.add_argument('--name-prefix')
 
     args = parser.parse_args()
 
@@ -141,7 +145,8 @@ def run():
 
     server = create_server(credential_file=args.credential_file,
                            username=args.username, api_key=args.api_key,
-                           image=args.image, flavor=args.flavor)
+                           image=args.image, flavor=args.flavor,
+                           server_name_prefix=args.name_prefix)
     add_server_to_known_hosts_file(server)
     install_prereqs(server)
 
