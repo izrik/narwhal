@@ -8,7 +8,8 @@ import paramiko
 import getpass
 
 
-def create_server(credential_file=None, username=None, api_key=None):
+def create_server(credential_file=None, username=None, api_key=None,
+                  image=None, flavor=None):
     """Create a Server."""
 
     if not (username or api_key or credential_file):
@@ -28,8 +29,11 @@ def create_server(credential_file=None, username=None, api_key=None):
 
     cs = pyrax.cloudservers
 
-    image = [img for img in cs.images.list() if "CentOS 6.3" in img.name][0]
-    flavor = [f for f in cs.flavors.list() if f.ram == 1024][0]
+    if image is None:
+        image = [img for img in cs.images.list()
+                 if "CentOS 6.3" in img.name][0]
+    if flavor is None:
+        flavor = [f for f in cs.flavors.list() if f.ram == 1024][0]
 
     t = time.localtime()
     date_string = '%d-%02d-%02d-%02d-%02d-%02d' % (t.tm_year, t.tm_mon,
@@ -58,13 +62,21 @@ def create_server(credential_file=None, username=None, api_key=None):
     if server2.status != u'ACTIVE':
         raise Exception('Server failed to build in time')
 
+    server2.adminPass = server.adminPass
+    return server2
+
+
+def add_server_to_known_hosts_file(server):
+    ips = server.networks['public']
+    os.system('ssh-keyscan %s 2>/dev/null >> ~/.ssh/known_hosts' %
+              ' '.join(ips))
+
+
+def install_prereqs(server):
     username = 'root'
     password = server.adminPass
     print 'password: %s' % password
-    ips = server2.networks['public']
-
-    os.system('ssh-keyscan %s 2>/dev/null >> ~/.ssh/known_hosts' %
-              ' '.join(ips))
+    ips = server.networks['public']
 
     ssh_client = paramiko.SSHClient()
     ssh_client.load_system_host_keys()
@@ -113,6 +125,8 @@ def run():
                         "the compute service")
     parser.add_argument('--username')
     parser.add_argument('--api-key')
+    parser.add_argument('--image')
+    parser.add_argument('--flavor')
 
     args = parser.parse_args()
 
@@ -125,8 +139,12 @@ def run():
     if args.username and not args.api_key:
         raise ValueError("No API key specified")
 
-    create_server(credential_file=args.credential_file, username=args.username,
-                  api_key=args.api_key)
+    server = create_server(credential_file=args.credential_file,
+                           username=args.username, api_key=args.api_key,
+                           image=args.image, flavor=args.flavor)
+    add_server_to_known_hosts_file(server)
+    install_prereqs(server)
+
 
 if __name__ == '__main__':
     run()
