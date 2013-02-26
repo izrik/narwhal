@@ -6,6 +6,7 @@ import argparse
 import time
 import paramiko
 import getpass
+import pushy
 
 
 def create_server(credential_file=None, username=None, api_key=None,
@@ -59,7 +60,7 @@ def create_server(credential_file=None, username=None, api_key=None,
             raise Exception("Server entered an invalid state: '%s'" %
                             server.status)
         time.sleep(15)
-        print time.asctime()
+        print '%s - %s%%' % (time.asctime(), str(server2.progress))
         n += 15
 
     if server2.status != u'ACTIVE':
@@ -78,11 +79,11 @@ def add_server_to_known_hosts_file(server):
 def install_prereqs(server):
     username = 'root'
     password = server.adminPass
-    print 'password: %s' % password
     ips = server.networks['public']
 
     ssh_client = paramiko.SSHClient()
     ssh_client.load_system_host_keys()
+    server.ssh_client = ssh_client
 
     connected = False
 
@@ -114,10 +115,35 @@ def install_prereqs(server):
     stdio = exec_command2('wget %s' % epel_url)
     stdio = exec_command2('rpm -Uvh %s' % epel_filename)
     stdio = exec_command2('rm -f %s' % epel_filename)
-
-    stdio = exec_command2('yum install -y python python-pip git')
-
+    stdio = exec_command2('yum install -y gcc')
+    stdio = exec_command2('yum install -y python python-pip')
+    stdio = exec_command2('yum install -y git')
+    stdio = exec_command2('yum install -y java-1.6.0-openjdk')
     stdio = exec_command2('pip-python install virtualenv')
+    stdio = exec_command2('PIP=`which pip-python` ;  ln -s $PIP `dirname $PIP`/pip')
+
+    stdio = exec_command2('git clone git://github.com/richard-sartor/repose-setup.git')
+    stdio = exec_command2('virtualenv repose-setup')
+    stdio = exec_command2('cd repose-setup ; . bin/activate ; pip install -r requirements.txt')
+
+    conn = pushy.connect(target='ssh:%s' % ip, python='/root/repose-setup/bin/python', username='root', password=server.adminPass)
+    conn.modules.os.chdir('/root/repose-setup')
+    server.pushy = conn
+    return conn
+
+
+def install_repose(server):
+    # tell the remote server to download the most recent snapshot artifacts
+    # from Nexus
+    #
+    server.pushy.modules.install_repose.get_repose()
+
+
+def run_remote_repose(server, config_dir=None):
+    if config_dir is None:
+        config_dir = 'etc/repose'
+    return server.pushy.modules.repose.ReposeValve(config_dir=config_dir,
+                                                   stop_port=7777)
 
 
 def run():
@@ -149,6 +175,19 @@ def run():
                            server_name_prefix=args.name_prefix)
     add_server_to_known_hosts_file(server)
     install_prereqs(server)
+    install_repose(server)
+
+    config_dir = 'etc/repose'
+    params = {
+        'port': 11111,
+        'deploydir': 'var/repose',
+        'artifactdir': 'usr/share/repose/filters',
+        'logfile': 'var/log/repose/current.log',
+    }
+    server.pushy.modules.conf.process_config_set(config_set_name='simple-node',
+                                                 destination_path=config_dir,
+                                                 params=params, verbose=False)
+    repose = run_remote_repose(server, config_dir=config_dir)
 
 
 if __name__ == '__main__':
