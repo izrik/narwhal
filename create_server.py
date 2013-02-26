@@ -141,11 +141,11 @@ def install_repose(server):
     server.pushy.modules.install_repose.get_repose()
 
 
-def run_remote_repose(server, config_dir=None):
+def run_remote_repose(server, config_dir, stop_port, **kwargs):
     if config_dir is None:
         config_dir = 'etc/repose'
     return server.pushy.modules.repose.ReposeValve(config_dir=config_dir,
-                                                   stop_port=7777)
+                                                   stop_port=7777, **kwargs)
 
 
 def open_iptables_port(server, port):
