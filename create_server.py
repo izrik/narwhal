@@ -108,6 +108,8 @@ def install_prereqs(server):
     def exec_command2(command, bufsize=-1):
         return map(readfile, ssh_client.exec_command(command, bufsize))
 
+    ssh_client.exec_command2 = exec_command2
+
     epel_filename = 'epel-release-6-8.noarch.rpm'
     epel_url = ('http://download.fedoraproject.org/pub/epel/6/i386/%s' %
                 epel_filename)
@@ -146,6 +148,12 @@ def run_remote_repose(server, config_dir=None):
                                                    stop_port=7777)
 
 
+def open_iptables_port(server, port):
+    return server.ssh_client.exec_command2('iptables -I INPUT -m state '
+                                           '--state NEW -m tcp -p tcp --dport '
+                                           '%s -j ACCEPT' % str(port))
+
+
 def run():
     parser = argparse.ArgumentParser(description="Create a server and install "
                                      "Repose on it.")
@@ -178,12 +186,14 @@ def run():
     install_repose(server)
 
     config_dir = 'etc/repose'
+    port = 11111
     params = {
-        'port': 11111,
+        'port': port,
         'deploydir': 'var/repose',
         'artifactdir': 'usr/share/repose/filters',
         'logfile': 'var/log/repose/current.log',
     }
+    open_iptables_port(server, port)
     server.pushy.modules.conf.process_config_set(config_set_name='simple-node',
                                                  destination_path=config_dir,
                                                  params=params, verbose=False)
