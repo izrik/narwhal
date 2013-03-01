@@ -198,7 +198,8 @@ def run():
     server.pushy.modules.conf.process_config_set(config_set_name='simple-node',
                                                  destination_path=config_dir,
                                                  params=params, verbose=False)
-    repose = run_remote_repose(server, config_dir=config_dir)
+    repose = run_remote_repose(server, config_dir=config_dir, stop_port=7777,
+                               wait_on_start=True, port=port)
 
 
 if __name__ == '__main__':
