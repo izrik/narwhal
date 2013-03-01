@@ -60,7 +60,8 @@ def create_server(credential_file=None, username=None, api_key=None,
             raise Exception("Server entered an invalid state: '%s'" %
                             server.status)
         time.sleep(15)
-        print '%s - %s%%' % (time.asctime(), str(server2.progress))
+        print '%s - %s (%s)%%' % (time.asctime(), server2.status,
+                                  str(server2.progress))
         n += 15
 
     if server2.status != u'ACTIVE':
