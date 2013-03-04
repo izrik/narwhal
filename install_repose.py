@@ -30,13 +30,14 @@ def get_artifact_url(root, extension, release):
         meta2s = requests.get(meta2).text
         meta2x = et.fromstring(meta2s)
         last_updated = meta2x.find('versioning/lastUpdated').text
-        for elem in meta2x.findall('versioning/snapshotVersions/snapshotVersion'):
+        for elem in meta2x.findall('versioning/snapshotVersions/'
+                                   'snapshotVersion'):
             if (elem.find('extension').text == extension and
                     elem.find('updated').text == last_updated):
 
                 value = elem.find('value').text
-                artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id, value,
-                                                extension)
+                artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id,
+                                                value, extension)
                 return artifact_url
 
     return None
@@ -102,12 +103,14 @@ def download_file(url, filename=None):
                 sys.stdout.write('.')
                 sys.stdout.flush()
         print
+    return filename
 
 
 _default_url_root = ('http://maven.research.rackspacecloud.com/'
                      'content/repositories')
 _default_valve_dest = 'usr/share/repose'
 _default_ear_dest = 'usr/share/repose/filters'
+
 
 def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
                get_filter=True, get_ext_filter=True, release=False):
@@ -126,23 +129,32 @@ def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
     if get_ext_filter:
         eurl = get_extensions_filter_bundle_url(root=url_root, release=release)
 
+    filenames = {}
+
     if get_valve:
         print vurl
         if vurl:
-            download_file(url=vurl, filename=os.path.join(valve_dest,
-                                                          'repose-valve.jar'))
+            valve_filename = os.path.join(valve_dest, 'repose-valve.jar')
+            valve_filename = download_file(url=vurl, filename=valve_filename)
+            filenames["valve"] = valve_filename
 
     if get_filter:
         print furl
         if furl:
-            download_file(url=furl, filename=os.path.join(ear_dest,
-                                                          'filter-bundle.ear'))
+            filter_filename = os.path.join(ear_dest, 'filter-bundle.ear')
+            filter_filename = download_file(url=furl, filename=filter_filename)
+            filenames["filter"] = filter_filename
 
     if get_ext_filter:
         print eurl
         if eurl:
-            download_file(url=eurl, filename=os.path.join(ear_dest,
-                                             'extensions-filter-bundle.ear'))
+            ext_filter_filename = os.path.join(ear_dest,
+                                               'extensions-filter-bundle.ear')
+            ext_filter_filename = download_file(url=eurl,
+                                                filename=ext_filter_filename)
+            filenames["ext_filter"] = ext_filter_filename
+
+    return filenames
 
 
 def run():
