@@ -40,7 +40,7 @@ def process_config_set(config_set_name, destination_path=None,
         if config_set_name not in get_config_sets(configs_folder):
             raise NamedConfigSetNotFoundException(config_set_name)
         filename = pathutil.join(configs_folder, config_set_name,
-                                '.config-set.xml')
+                                 '.config-set.xml')
         config_xml = et.parse(filename)
         source_context = pathutil.join(configs_folder, config_set_name)
 
@@ -75,6 +75,7 @@ def process_config_set(config_set_name, destination_path=None,
 class NamedConfigSetNotFoundException(Exception):
     def __init__(self, name):
         self.name = name
+
     def __str__(self):
         return "No config set named \"%s\" was found." % self.name
 
@@ -90,7 +91,8 @@ def copy_and_apply_params(source, dest, params={}, verbose=True):
             for match in unsubst:
                 name = match[1] or match[2] or None
                 if name is not None:
-                    print "Warning: Unsubstituted value \"%s\" in template." % name
+                    print ("Warning: Unsubstituted value \"%s\" in template." %
+                           name)
         output.write(subst)
 
 
