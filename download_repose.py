@@ -30,7 +30,7 @@ def get_artifact_url(root, extension, release, version=None):
                     found = True
                     break
             if not found:
-                raise Exception('Version "%s" not found' % version)
+                raise Exception('Version "%s" not found in the metadata' % version)
         version_root = '%s/%s' % (root, version)
         artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id, version,
                                            extension)
@@ -50,7 +50,7 @@ def get_artifact_url(root, extension, release, version=None):
             else:
                 m = re.match('(\d+\.\d+\.\d+)-(\d+\.\d+-\d+)', version)
                 if m is None:
-                    raise Exception
+                    raise Exception('Invalid version format: "%s"' % version)
                 main_version = m.group(1)
                 snapshot_version = '%s-%s' % (main_version, m.group(2))
             found = False
