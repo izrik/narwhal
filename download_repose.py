@@ -8,10 +8,10 @@ import xml.dom.minidom
 import xml.etree.ElementTree as et
 import requests
 import pathutil
+import re
 
 
-def get_artifact_url(root, extension, release, version=None,
-                     snapshot_version=None):
+def get_artifact_url(root, extension, release, version=None):
 
     meta = '%s/maven-metadata.xml' % root
     metas = requests.get(meta).text
@@ -37,21 +37,55 @@ def get_artifact_url(root, extension, release, version=None,
         return artifact_url
 
     else:
-        latest = metax.find('versioning/latest').text
-        version_root = '%s/%s' % (root, latest)
+        if version is None:
+            version = metax.find('versioning/latest').text
+            main_version = re.match('(\d+\.\d+\.\d+)-SNAPSHOT', version).group(1)
+            snapshot_version = None
+        else:
+            version = str(version)
+            m = re.match('(\d+\.\d+\.\d+)(-SNAPSHOT|$)', version)
+            if m is not None:
+                main_version = m.group(1)
+                snapshot_version = None
+            else:
+                m = re.match('(\d+\.\d+\.\d+)-(\d+\.\d+-\d+)', version)
+                if m is None:
+                    raise Exception
+                main_version = m.group(1)
+                snapshot_version = '%s-%s' % (main_version, m.group(2))
+            found = False
+            for vv in metax.findall('versioning/versions/version'):
+                # kludge - searching through the list because ET doesn't have
+                # complete xpath predicate support
+                if vv.text == '%s-SNAPSHOT' % main_version:
+                    found = True
+                    break
+            if not found:
+                raise Exception('Version "%s" not found in the metadata' % main_version)
+        version_root = '%s/%s-SNAPSHOT' % (root, main_version)
         meta2 = '%s/maven-metadata.xml' % version_root
         meta2s = requests.get(meta2).text
         meta2x = et.fromstring(meta2s)
-        last_updated = meta2x.find('versioning/lastUpdated').text
-        for elem in meta2x.findall('versioning/snapshotVersions/'
-                                   'snapshotVersion'):
-            if (elem.find('extension').text == extension and
-                    elem.find('updated').text == last_updated):
-
-                value = elem.find('value').text
-                artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id,
-                                                value, extension)
-                return artifact_url
+        if snapshot_version is None:
+            last_updated = meta2x.find('versioning/lastUpdated').text
+            for elem in meta2x.findall('versioning/snapshotVersions/'
+                                       'snapshotVersion'):
+                if (elem.find('extension').text == extension and
+                        elem.find('updated').text == last_updated):
+                    snapshot_version = elem.find('value').text
+        else:
+            found = False
+            for elem in meta2x.findall('versioning/snapshotVersions/'
+                                       'snapshotVersion'):
+                if (elem.find('extension').text == extension and
+                        elem.find('value').text == snapshot_version):
+                    found = True
+            if not found:
+                raise Exception('Snapshot version "%s" not found in the '
+                                'metadata' % (snapshot_version))
+        artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id,
+                                           snapshot_version, extension)
+        return artifact_url
 
     return None
 
@@ -199,8 +233,11 @@ def run():
     parser.add_argument('--release', help='Download a release build instead '
                         'of a SNAPSHOT build.', action='store_true')
     parser.add_argument('--version', help='The version of the artifacts to '
-                        'download. Typically of the form x.y.z, like "2.6.4".',
-                        type=str)
+                        'download. Typically of the forms "x.y.z" for '
+                        'releases, "x.y.z-SNAPSHOT" for the most recent '
+                        'snapshot build in version x.y.z, and '
+                        '"x.y.z-date.time-build" for a specific snapshot '
+                        'build.', type=str)
     args = parser.parse_args()
 
     get_repose(url_root=args.url_root, valve_dest=args.valve_dest,
