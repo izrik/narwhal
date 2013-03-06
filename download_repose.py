@@ -10,16 +10,29 @@ import requests
 import pathutil
 
 
-def get_artifact_url(root, extension, release):
+def get_artifact_url(root, extension, release, version=None,
+                     snapshot_version=None):
 
     meta = '%s/maven-metadata.xml' % root
     metas = requests.get(meta).text
     metax = et.fromstring(metas)
     artifact_id = metax.find('artifactId').text
     if release:
-        latest = metax.find('versioning/release').text
-        version_root = '%s/%s' % (root, latest)
-        artifact_url = '%s/%s/%s-%s.%s' % (root, latest, artifact_id, latest,
+        if version is None:
+            version = metax.find('versioning/release').text
+        else:
+            version = str(version)
+            found = False
+            for vv in metax.findall('versioning/versions/version'):
+                # kludge - searching through the list because ET doesn't have
+                # complete xpath predicate support
+                if vv.text == version:
+                    found = True
+                    break
+            if not found:
+                raise Exception('Version "%s" not found' % version)
+        version_root = '%s/%s' % (root, version)
+        artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id, version,
                                            extension)
         return artifact_url
 
@@ -43,7 +56,7 @@ def get_artifact_url(root, extension, release):
     return None
 
 
-def get_repose_valve_url(root, release=False):
+def get_repose_valve_url(root, release=False, version=None):
     if release:
         s_or_r = 'releases'
     else:
@@ -51,10 +64,10 @@ def get_repose_valve_url(root, release=False):
 
     vroot = "%s/%s/com/rackspace/papi/core/valve" % (root, s_or_r)
 
-    return get_artifact_url(vroot, 'jar', release=release)
+    return get_artifact_url(vroot, 'jar', release=release, version=version)
 
 
-def get_filter_bundle_url(root, release=False):
+def get_filter_bundle_url(root, release=False, version=None):
     if release:
         s_or_r = 'releases'
     else:
@@ -63,12 +76,13 @@ def get_filter_bundle_url(root, release=False):
     froot = ('%s/%s/com/rackspace/papi/components/filter-bundle' %
              (root, s_or_r))
 
-    f_artifact_url = get_artifact_url(froot, 'ear', release=release)
+    f_artifact_url = get_artifact_url(froot, 'ear', release=release,
+                                      version=version)
 
     return f_artifact_url
 
 
-def get_extensions_filter_bundle_url(root, release=False):
+def get_extensions_filter_bundle_url(root, release=False, version=None):
     if release:
         s_or_r = 'releases'
     else:
@@ -77,7 +91,8 @@ def get_extensions_filter_bundle_url(root, release=False):
     eroot = ("%s/%s/com/rackspace/papi/components/extensions/"
              "extensions-filter-bundle" % (root, s_or_r))
 
-    e_artifact_url = get_artifact_url(eroot, 'ear', release=release)
+    e_artifact_url = get_artifact_url(eroot, 'ear', release=release,
+                                      version=version)
 
     return e_artifact_url
 
@@ -113,7 +128,8 @@ _default_ear_dest = 'usr/share/repose/filters'
 
 
 def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
-               get_filter=True, get_ext_filter=True, release=False):
+               get_filter=True, get_ext_filter=True, release=False,
+               version=None):
 
     if url_root is None:
         url_root = _default_url_root
@@ -123,11 +139,14 @@ def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
         ear_dest = _default_ear_dest
 
     if get_valve:
-        vurl = get_repose_valve_url(root=url_root, release=release)
+        vurl = get_repose_valve_url(root=url_root, release=release,
+                                    version=version)
     if get_filter:
-        furl = get_filter_bundle_url(root=url_root, release=release)
+        furl = get_filter_bundle_url(root=url_root, release=release,
+                                     version=version)
     if get_ext_filter:
-        eurl = get_extensions_filter_bundle_url(root=url_root, release=release)
+        eurl = get_extensions_filter_bundle_url(root=url_root, release=release,
+                                                version=version)
 
     filenames = {}
 
@@ -179,11 +198,14 @@ def run():
                         default=_default_url_root)
     parser.add_argument('--release', help='Download a release build instead '
                         'of a SNAPSHOT build.', action='store_true')
+    parser.add_argument('--version', help='The version of the artifacts to '
+                        'download. Typically of the form x.y.z, like "2.6.4".',
+                        type=str)
     args = parser.parse_args()
 
     get_repose(url_root=args.url_root, valve_dest=args.valve_dest,
                ear_dest=args.ear_dest, get_valve=not args.no_valve,
-               get_filter=not args.no_filter,
+               get_filter=not args.no_filter, version=args.version,
                get_ext_filter=not args.no_ext_filter, release=args.release)
 
 
