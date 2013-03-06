@@ -155,9 +155,9 @@ def open_iptables_port(server, port):
                                            '%s -j ACCEPT' % str(port))
 
 
-def create_rserver(credential_file=None, username=None, api_key=None,
-                  image=None, flavor=None, server_name=None,
-                  server_name_prefix=None, config_dir=None, port=None):
+def create_rserver(config_dir, port, credential_file=None, username=None,
+                   api_key=None, image=None, flavor=None, server_name=None,
+                   server_name_prefix=None):
     server = create_server(credential_file=credential_file,
                            username=username, api_key=api_key,
                            image=image, flavor=flavor,
