@@ -139,7 +139,7 @@ def install_repose(server):
     # tell the remote server to download the most recent snapshot artifacts
     # from Nexus
     #
-    server.pushy.modules.install_repose.get_repose()
+    return server.pushy.modules.install_repose.get_repose()
 
 
 def run_remote_repose(server, config_dir, stop_port, **kwargs):
@@ -153,6 +153,34 @@ def open_iptables_port(server, port):
     return server.ssh_client.exec_command2('iptables -I INPUT -m state '
                                            '--state NEW -m tcp -p tcp --dport '
                                            '%s -j ACCEPT' % str(port))
+
+
+def create_rserver(credential_file=None, username=None, api_key=None,
+                  image=None, flavor=None, server_name=None,
+                  server_name_prefix=None, config_dir=None, port=None):
+    server = create_server(credential_file=credential_file,
+                           username=username, api_key=api_key,
+                           image=image, flavor=flavor,
+                           server_name_prefix=server_name_prefix)
+    add_server_to_known_hosts_file(server)
+    install_prereqs(server)
+    downloads = install_repose(server)
+
+    params = {
+        'port': port,
+        'deploydir': 'var/repose',
+        'artifactdir': 'usr/share/repose/filters',
+        'logfile': 'var/log/repose/current.log',
+    }
+    open_iptables_port(server, port)
+    server.pushy.modules.conf.process_config_set(config_set_name='simple-node',
+                                                 destination_path=config_dir,
+                                                 params=params, verbose=False)
+    server.ssh_client.exec_command('mkdir -p ~/repose-setup/var/repose')
+    repose = run_remote_repose(server, config_dir=config_dir, stop_port=7777,
+                               wait_on_start=True, port=port)
+    server.repose = repose
+    return server
 
 
 def run():
@@ -178,28 +206,11 @@ def run():
     if args.username and not args.api_key:
         raise ValueError("No API key specified")
 
-    server = create_server(credential_file=args.credential_file,
-                           username=args.username, api_key=args.api_key,
-                           image=args.image, flavor=args.flavor,
-                           server_name_prefix=args.name_prefix)
-    add_server_to_known_hosts_file(server)
-    install_prereqs(server)
-    install_repose(server)
-
-    config_dir = 'etc/repose'
-    port = 11111
-    params = {
-        'port': port,
-        'deploydir': 'var/repose',
-        'artifactdir': 'usr/share/repose/filters',
-        'logfile': 'var/log/repose/current.log',
-    }
-    open_iptables_port(server, port)
-    server.pushy.modules.conf.process_config_set(config_set_name='simple-node',
-                                                 destination_path=config_dir,
-                                                 params=params, verbose=False)
-    repose = run_remote_repose(server, config_dir=config_dir, stop_port=7777,
-                               wait_on_start=True, port=port)
+    server = create_rserver(credential_file=args.credential_file,
+                            username=args.username, api_key=args.api_key,
+                            image=args.image, flavor=args.flavor,
+                            server_name_prefix=args.name_prefix,
+                            config_dir='etc/repose', port=11111)
 
 
 if __name__ == '__main__':
