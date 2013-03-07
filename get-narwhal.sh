@@ -1,7 +1,7 @@
 #!/bin/bash
 
 REPO_BASE=https://github.com/richard-sartor/
-REPO_FOLDER=repose-setup
+REPO_FOLDER=narwhal
 REPO_SUFFIX=.git
 
 if [ -e .git ]; then

@@ -125,12 +125,12 @@ def install_prereqs(server):
     stdio = exec_command2('pip-python install virtualenv')
     stdio = exec_command2('PIP=`which pip-python` ;  ln -s $PIP `dirname $PIP`/pip')
 
-    stdio = exec_command2('git clone git://github.com/richard-sartor/repose-setup.git')
-    stdio = exec_command2('virtualenv repose-setup')
-    stdio = exec_command2('cd repose-setup ; . bin/activate ; pip install -r requirements.txt')
+    stdio = exec_command2('git clone git://github.com/richard-sartor/narwhal.git')
+    stdio = exec_command2('virtualenv narwhal')
+    stdio = exec_command2('cd narwhal ; . bin/activate ; pip install -r requirements.txt')
 
-    conn = pushy.connect(target='ssh:%s' % ip, python='/root/repose-setup/bin/python', username='root', password=server.adminPass)
-    conn.modules.os.chdir('/root/repose-setup')
+    conn = pushy.connect(target='ssh:%s' % ip, python='/root/narwhal/bin/python', username='root', password=server.adminPass)
+    conn.modules.os.chdir('/root/narwhal')
     server.pushy = conn
     return conn
 
@@ -176,7 +176,7 @@ def create_rserver(config_dir, port, credential_file=None, username=None,
     server.pushy.modules.conf.process_config_set(config_set_name='simple-node',
                                                  destination_path=config_dir,
                                                  params=params, verbose=False)
-    server.ssh_client.exec_command('mkdir -p ~/repose-setup/var/repose')
+    server.ssh_client.exec_command('mkdir -p ~/narwhal/var/repose')
     repose = run_remote_repose(server, config_dir=config_dir, stop_port=7777,
                                wait_on_start=True, port=port)
     server.repose = repose
