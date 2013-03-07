@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='narwhal',
-    version='0.1',
+    version='0.1.1',
     packages=['narwhal',],
     license='MIT License',
     long_description=open('README.txt').read(),
