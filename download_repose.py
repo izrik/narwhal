@@ -8,42 +8,89 @@ import xml.dom.minidom
 import xml.etree.ElementTree as et
 import requests
 import pathutil
+import re
 
 
-def get_artifact_url(root, extension, release):
+def get_artifact_url(root, extension, release, version=None):
 
     meta = '%s/maven-metadata.xml' % root
     metas = requests.get(meta).text
     metax = et.fromstring(metas)
     artifact_id = metax.find('artifactId').text
     if release:
-        latest = metax.find('versioning/release').text
-        version_root = '%s/%s' % (root, latest)
-        artifact_url = '%s/%s/%s-%s.%s' % (root, latest, artifact_id, latest,
+        if version is None:
+            version = metax.find('versioning/release').text
+        else:
+            version = str(version)
+            found = False
+            for vv in metax.findall('versioning/versions/version'):
+                # kludge - searching through the list because ET doesn't have
+                # complete xpath predicate support
+                if vv.text == version:
+                    found = True
+                    break
+            if not found:
+                raise Exception('Version "%s" not found in the metadata' % version)
+        version_root = '%s/%s' % (root, version)
+        artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id, version,
                                            extension)
         return artifact_url
 
     else:
-        latest = metax.find('versioning/latest').text
-        version_root = '%s/%s' % (root, latest)
+        if version is None:
+            version = metax.find('versioning/latest').text
+            main_version = re.match('(\d+\.\d+\.\d+)-SNAPSHOT', version).group(1)
+            snapshot_version = None
+        else:
+            version = str(version)
+            m = re.match('(\d+\.\d+\.\d+)(-SNAPSHOT|$)', version)
+            if m is not None:
+                main_version = m.group(1)
+                snapshot_version = None
+            else:
+                m = re.match('(\d+\.\d+\.\d+)-(\d+\.\d+-\d+)', version)
+                if m is None:
+                    raise Exception('Invalid version format: "%s"' % version)
+                main_version = m.group(1)
+                snapshot_version = '%s-%s' % (main_version, m.group(2))
+            found = False
+            for vv in metax.findall('versioning/versions/version'):
+                # kludge - searching through the list because ET doesn't have
+                # complete xpath predicate support
+                if vv.text == '%s-SNAPSHOT' % main_version:
+                    found = True
+                    break
+            if not found:
+                raise Exception('Version "%s" not found in the metadata' % main_version)
+        version_root = '%s/%s-SNAPSHOT' % (root, main_version)
         meta2 = '%s/maven-metadata.xml' % version_root
         meta2s = requests.get(meta2).text
         meta2x = et.fromstring(meta2s)
-        last_updated = meta2x.find('versioning/lastUpdated').text
-        for elem in meta2x.findall('versioning/snapshotVersions/'
-                                   'snapshotVersion'):
-            if (elem.find('extension').text == extension and
-                    elem.find('updated').text == last_updated):
-
-                value = elem.find('value').text
-                artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id,
-                                                value, extension)
-                return artifact_url
+        if snapshot_version is None:
+            last_updated = meta2x.find('versioning/lastUpdated').text
+            for elem in meta2x.findall('versioning/snapshotVersions/'
+                                       'snapshotVersion'):
+                if (elem.find('extension').text == extension and
+                        elem.find('updated').text == last_updated):
+                    snapshot_version = elem.find('value').text
+        else:
+            found = False
+            for elem in meta2x.findall('versioning/snapshotVersions/'
+                                       'snapshotVersion'):
+                if (elem.find('extension').text == extension and
+                        elem.find('value').text == snapshot_version):
+                    found = True
+            if not found:
+                raise Exception('Snapshot version "%s" not found in the '
+                                'metadata' % (snapshot_version))
+        artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id,
+                                           snapshot_version, extension)
+        return artifact_url
 
     return None
 
 
-def get_repose_valve_url(root, release=False):
+def get_repose_valve_url(root, release=False, version=None):
     if release:
         s_or_r = 'releases'
     else:
@@ -51,10 +98,10 @@ def get_repose_valve_url(root, release=False):
 
     vroot = "%s/%s/com/rackspace/papi/core/valve" % (root, s_or_r)
 
-    return get_artifact_url(vroot, 'jar', release=release)
+    return get_artifact_url(vroot, 'jar', release=release, version=version)
 
 
-def get_filter_bundle_url(root, release=False):
+def get_filter_bundle_url(root, release=False, version=None):
     if release:
         s_or_r = 'releases'
     else:
@@ -63,12 +110,13 @@ def get_filter_bundle_url(root, release=False):
     froot = ('%s/%s/com/rackspace/papi/components/filter-bundle' %
              (root, s_or_r))
 
-    f_artifact_url = get_artifact_url(froot, 'ear', release=release)
+    f_artifact_url = get_artifact_url(froot, 'ear', release=release,
+                                      version=version)
 
     return f_artifact_url
 
 
-def get_extensions_filter_bundle_url(root, release=False):
+def get_extensions_filter_bundle_url(root, release=False, version=None):
     if release:
         s_or_r = 'releases'
     else:
@@ -77,7 +125,8 @@ def get_extensions_filter_bundle_url(root, release=False):
     eroot = ("%s/%s/com/rackspace/papi/components/extensions/"
              "extensions-filter-bundle" % (root, s_or_r))
 
-    e_artifact_url = get_artifact_url(eroot, 'ear', release=release)
+    e_artifact_url = get_artifact_url(eroot, 'ear', release=release,
+                                      version=version)
 
     return e_artifact_url
 
@@ -113,7 +162,8 @@ _default_ear_dest = 'usr/share/repose/filters'
 
 
 def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
-               get_filter=True, get_ext_filter=True, release=False):
+               get_filter=True, get_ext_filter=True, release=False,
+               version=None):
 
     if url_root is None:
         url_root = _default_url_root
@@ -123,11 +173,14 @@ def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
         ear_dest = _default_ear_dest
 
     if get_valve:
-        vurl = get_repose_valve_url(root=url_root, release=release)
+        vurl = get_repose_valve_url(root=url_root, release=release,
+                                    version=version)
     if get_filter:
-        furl = get_filter_bundle_url(root=url_root, release=release)
+        furl = get_filter_bundle_url(root=url_root, release=release,
+                                     version=version)
     if get_ext_filter:
-        eurl = get_extensions_filter_bundle_url(root=url_root, release=release)
+        eurl = get_extensions_filter_bundle_url(root=url_root, release=release,
+                                                version=version)
 
     filenames = {}
 
@@ -179,11 +232,17 @@ def run():
                         default=_default_url_root)
     parser.add_argument('--release', help='Download a release build instead '
                         'of a SNAPSHOT build.', action='store_true')
+    parser.add_argument('--version', help='The version of the artifacts to '
+                        'download. Typically of the forms "x.y.z" for '
+                        'releases, "x.y.z-SNAPSHOT" for the most recent '
+                        'snapshot build in version x.y.z, and '
+                        '"x.y.z-date.time-build" for a specific snapshot '
+                        'build.', type=str)
     args = parser.parse_args()
 
     get_repose(url_root=args.url_root, valve_dest=args.valve_dest,
                ear_dest=args.ear_dest, get_valve=not args.no_valve,
-               get_filter=not args.no_filter,
+               get_filter=not args.no_filter, version=args.version,
                get_ext_filter=not args.no_ext_filter, release=args.release)
 
 
