@@ -135,6 +135,49 @@ def get_extensions_filter_bundle_url(root, release=False, version=None):
     return e_artifact_url
 
 
+def clean_up_dest(dest = None):
+
+    if dest == '' or dest is None:
+        dest = os.path.basename(url)
+    else:
+        logger.debug('cleaning up dest')
+        logger.debug('dest: %s' % dest)
+        logger.debug('os.path.isdir(dest): %s' % os.path.isdir(dest))
+        basename = os.path.basename(dest)
+        dirname = os.path.dirname(dest)
+        if os.path.isdir(dest) or basename == '':
+            basename = os.path.basename(url)
+            dirname = dest
+        else:
+            basename = os.path.basename(dest)
+            dirname = os.path.dirname(dest)
+        logger.debug('basename: %s' % basename)
+        logger.debug('dirname: %s' % dirname)
+        basename = os.path.normpath(basename)
+        dirname = os.path.normpath(dirname)
+        logger.debug('basename: %s' % basename)
+        logger.debug('dirname: %s' % dirname)
+        logger.debug('os.path.exists(dirname): %s' %
+                     str(os.path.exists(dirname)))
+        if dirname != '' and os.path.exists(dirname):
+            n = 1
+            basename2 = basename
+            logger.debug('basename2: %s' % basename2)
+            logger.debug('os.path.exists(os.path.join(dirname, basename2)): %s'
+                         % os.path.exists(os.path.join(dirname, basename2)))
+            while os.path.exists(os.path.join(dirname, basename2)):
+                basename2 = basename + '.%i' % n
+                n += 1
+                logger.debug('basename2: %s' % basename2)
+                logger.debug('os.path.exists(os.path.join(dirname, '
+                             'basename2)): %s' %
+                             os.path.exists(os.path.join(dirname, basename2)))
+            basename = basename2
+        dest = os.path.join(dirname, basename)
+        logger.debug('dest [final]: %s' % dest)
+    return dest
+
+
 def download_file(url, filename=None):
     if filename is None:
         filename = url.split('/')[-1]
