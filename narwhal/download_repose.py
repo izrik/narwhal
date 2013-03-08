@@ -9,6 +9,10 @@ import xml.etree.ElementTree as et
 import requests
 import pathutil
 import re
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_artifact_url(root, extension, release, version=None):
@@ -238,7 +242,20 @@ def run():
                         'snapshot build in version x.y.z, and '
                         '"x.y.z-date.time-build" for a specific snapshot '
                         'build.', type=str)
+    parser.add_argument('--print-log', help="Print the log to STDERR.",
+                        action='store_true')
+    parser.add_argument('--full-log', help="Log more information.",
+                        action='store_true')
     args = parser.parse_args()
+
+    if args.print_log:
+        if args.full_log:
+            logging.basicConfig(level=logging.DEBUG,
+                                format='%(levelname)s:%(name)s:%(funcName)s:'
+                                '%(filename)s(%(lineno)d):%(threadName)s'
+                                '(%(thread)d):%(message)s')
+        else:
+            logging.basicConfig(level=logging.DEBUG)
 
     get_repose(url_root=args.url_root, valve_dest=args.valve_dest,
                ear_dest=args.ear_dest, get_valve=not args.no_valve,
