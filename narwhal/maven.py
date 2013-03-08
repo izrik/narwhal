@@ -33,13 +33,14 @@ class MavenConnector(object):
                 else:
                     m = re.match('(\d+\.\d+\.\d+)-(\d+\.\d+-\d+)', version)
                     if m is None:
-                        raise Exception('Invalid version format: "%s"' % version)
+                        raise Exception('Invalid version format: "%s"' %
+                                        version)
                     main_version = m.group(1)
                     snapshot_version = '%s-%s' % (main_version, m.group(2))
                 found = False
                 for vv in metax.findall('versioning/versions/version'):
-                    # kludge - searching through the list because ET doesn't have
-                    # complete xpath predicate support
+                    # kludge - searching through the list because ET doesn't
+                    # have complete xpath predicate support
                     if vv.text == '%s-SNAPSHOT' % main_version:
                         found = True
                         break
@@ -70,7 +71,7 @@ class MavenConnector(object):
                     raise Exception('Snapshot version "%s" not found in the '
                                     'metadata' % (snapshot_version))
             artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id,
-                                               snapshot_version, extension)
+                                            snapshot_version, extension)
             return artifact_url
         else:
             if version is None:
@@ -79,8 +80,8 @@ class MavenConnector(object):
                 version = str(version)
                 found = False
                 for vv in metax.findall('versioning/versions/version'):
-                    # kludge - searching through the list because ET doesn't have
-                    # complete xpath predicate support
+                    # kludge - searching through the list because ET doesn't
+                    # have complete xpath predicate support
                     if vv.text == version:
                         found = True
                         break
@@ -89,20 +90,19 @@ class MavenConnector(object):
                                     version)
             version_root = '%s/%s' % (root, version)
             artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id, version,
-                                               extension)
+                                            extension)
             return artifact_url
 
         return None
 
-
     def clean_up_dest(self, url, dest=None):
-        """Clean up the destination. If dest is None, use the filename of the file
-        being downloaded and store it in the current directory. If dest ends with a
-        '/', or if it points to a directory, use the filename of the file being
-        downloaded and store it in the specified directory. If dest doesn't end
-        with a '/' and doesn't point to a directory, store the file using the
-        specfied filename. If the specified already exists, append a number to
-        it."""
+        """Clean up the destination. If dest is None, use the filename of the
+        file being downloaded and store it in the current directory. If dest
+        ends with a '/', or if it points to a directory, use the filename of
+        the file being downloaded and store it in the specified directory. If
+        dest doesn't end with a '/' and doesn't point to a directory, store
+        the file using the specfied filename. If the specified already exists,
+        append a number to it."""
         if dest == '' or dest is None:
             dest = os.path.basename(url)
         else:
@@ -129,20 +129,21 @@ class MavenConnector(object):
                 n = 1
                 basename2 = basename
                 logger.debug('basename2: %s' % basename2)
-                logger.debug('os.path.exists(os.path.join(dirname, basename2)): %s'
-                             % os.path.exists(os.path.join(dirname, basename2)))
+                logger.debug('os.path.exists(join(dirname, basename2)): %s'
+                             % os.path.exists(os.path.join(dirname,
+                                                           basename2)))
                 while os.path.exists(os.path.join(dirname, basename2)):
                     basename2 = basename + '.%i' % n
                     n += 1
                     logger.debug('basename2: %s' % basename2)
                     logger.debug('os.path.exists(os.path.join(dirname, '
                                  'basename2)): %s' %
-                                 os.path.exists(os.path.join(dirname, basename2)))
+                                 os.path.exists(os.path.join(dirname,
+                                                             basename2)))
                 basename = basename2
             dest = os.path.join(dirname, basename)
             logger.debug('dest [final]: %s' % dest)
         return dest
-
 
     def download_file(self, url, dest):
 
@@ -165,4 +166,3 @@ class MavenConnector(object):
                     sys.stdout.write('.')
                     sys.stdout.flush()
             print
-

@@ -16,7 +16,6 @@ class ReposeMavenConnector(maven.MavenConnector):
     _default_ext_filter_dest = ('usr/share/repose/filters/'
                                 'extensions-filter-bundle.ear')
 
-
     def get_repose_valve_url(self, root, snapshot=False, version=None):
         if snapshot:
             s_or_r = 'snapshots'
@@ -27,7 +26,6 @@ class ReposeMavenConnector(maven.MavenConnector):
 
         return self.get_artifact_url(vroot, 'jar', snapshot=snapshot,
                                      version=version)
-
 
     def get_filter_bundle_url(self, root, snapshot=False, version=None):
         if snapshot:
@@ -43,8 +41,8 @@ class ReposeMavenConnector(maven.MavenConnector):
 
         return f_artifact_url
 
-
-    def get_extensions_filter_bundle_url(self, root, snapshot=False, version=None):
+    def get_extensions_filter_bundle_url(self, root, snapshot=False,
+                                         version=None):
         if snapshot:
             s_or_r = 'snapshots'
         else:
@@ -57,7 +55,6 @@ class ReposeMavenConnector(maven.MavenConnector):
                                                version=version)
 
         return e_artifact_url
-
 
     def get_repose(self, url_root=None, valve_dest=None, filter_dest=None,
                    ext_filter_dest=None, get_valve=True, get_filter=True,
