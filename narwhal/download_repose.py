@@ -139,8 +139,14 @@ def get_extensions_filter_bundle_url(root, snapshot=False, version=None):
     return e_artifact_url
 
 
-def clean_up_dest(dest = None):
-
+def clean_up_dest(url, dest=None):
+    """Clean up the destination. If dest is None, use the filename of the file
+    being downloaded and store it in the current directory. If dest ends with a
+    '/', or if it points to a directory, use the filename of the file being
+    downloaded and store it in the specified directory. If dest doesn't end
+    with a '/' and doesn't point to a directory, store the file using the
+    specfied filename. If the specified already exists, append a number to
+    it."""
     if dest == '' or dest is None:
         dest = os.path.basename(url)
     else:
@@ -182,19 +188,19 @@ def clean_up_dest(dest = None):
     return dest
 
 
-def download_file(url, filename=None):
-    if filename is None:
-        filename = url.split('/')[-1]
+def download_file(url, dest):
 
-    pathutil.create_folder(os.path.dirname(filename))
-
-    response = requests.get(url)
+    response = requests.get(url, stream=True)
     if response.status_code != 200:
         raise ValueError
 
+    dirname = os.path.dirname(dest)
+    if dirname != '' and not os.path.exists(dirname):
+        os.makedirs(dirname)
+
     blocksize = 4096
     count = 0
-    with open('./%s' % filename, 'wb') as f:
+    with open(dest, 'wb') as f:
         for block in response.iter_content(blocksize):
             f.write(block)
             count += len(block)
@@ -203,25 +209,28 @@ def download_file(url, filename=None):
                 sys.stdout.write('.')
                 sys.stdout.flush()
         print
-    return filename
 
 
 _default_url_root = ('http://maven.research.rackspacecloud.com/'
                      'content/repositories')
-_default_valve_dest = 'usr/share/repose'
-_default_ear_dest = 'usr/share/repose/filters'
+_default_valve_dest = 'usr/share/repose/repose-valve.jar'
+_default_filter_dest = 'usr/share/repose/filters/filter-bundle.ear'
+_default_ext_filter_dest = ('usr/share/repose/filters/'
+                            'extensions-filter-bundle.ear')
 
 
-def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
-               get_filter=True, get_ext_filter=True, snapshot=False,
-               version=None):
+def get_repose(url_root=None, valve_dest=None, filter_dest=None,
+               ext_filter_dest=None, get_valve=True, get_filter=True,
+               get_ext_filter=True, snapshot=False, version=None):
 
     if url_root is None:
         url_root = _default_url_root
     if valve_dest is None:
         valve_dest = _default_valve_dest
-    if ear_dest is None:
-        ear_dest = _default_ear_dest
+    if filter_dest is None:
+        filter_dest = _default_filter_dest
+    if ext_filter_dest is None:
+        ext_filter_dest = _default_ext_filter_dest
 
     if get_valve:
         vurl = get_repose_valve_url(root=url_root, snapshot=snapshot,
@@ -230,33 +239,32 @@ def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
         furl = get_filter_bundle_url(root=url_root, snapshot=snapshot,
                                      version=version)
     if get_ext_filter:
-        eurl = get_extensions_filter_bundle_url(root=url_root, snapshot=snapshot,
+        eurl = get_extensions_filter_bundle_url(root=url_root,
+                                                snapshot=snapshot,
                                                 version=version)
 
     filenames = {}
 
     if get_valve:
-        print vurl
+        valve_dest = clean_up_dest(vurl, valve_dest)
+        print '%s --> %s' % (vurl, valve_dest)
         if vurl:
-            valve_filename = os.path.join(valve_dest, 'repose-valve.jar')
-            valve_filename = download_file(url=vurl, filename=valve_filename)
-            filenames["valve"] = valve_filename
+            download_file(url=vurl, dest=valve_dest)
+            filenames["valve"] = valve_dest
 
     if get_filter:
-        print furl
+        filter_dest = clean_up_dest(furl, filter_dest)
+        print '%s --> %s' % (furl, filter_dest)
         if furl:
-            filter_filename = os.path.join(ear_dest, 'filter-bundle.ear')
-            filter_filename = download_file(url=furl, filename=filter_filename)
-            filenames["filter"] = filter_filename
+            download_file(url=furl, dest=filter_dest)
+            filenames["filter"] = filter_dest
 
     if get_ext_filter:
-        print eurl
+        ext_filter_dest = clean_up_dest(eurl, ext_filter_dest)
+        print '%s --> %s' % (eurl, ext_filter_dest)
         if eurl:
-            ext_filter_filename = os.path.join(ear_dest,
-                                               'extensions-filter-bundle.ear')
-            ext_filter_filename = download_file(url=eurl,
-                                                filename=ext_filter_filename)
-            filenames["ext_filter"] = ext_filter_filename
+            download_file(url=eurl, dest=ext_filter_dest)
+            filenames["ext_filter"] = ext_filter_dest
 
     return filenames
 
@@ -264,12 +272,16 @@ def get_repose(url_root=None, valve_dest=None, ear_dest=None, get_valve=True,
 def run():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--valve-dest', help='Folder where you want the '
-                        'repose-valve.jar file to go.',
-                        default=_default_valve_dest)
-    parser.add_argument('--ear-dest', help='Folder where you want the EAR '
-                        'filter bundles to go.',
-                        default=_default_ear_dest)
+    parser.add_argument('--valve-dest', help='The name that the Valve JAR '
+                        'should be renamed to, or the directory where it '
+                        'should be downloaded to.')
+    parser.add_argument('--filter-dest', help='The name that the filter '
+                        'bundle EAR file should be renamed to, or the '
+                        'directory where it should be downloaded to.')
+    parser.add_argument('--ext-filter-dest', help='The name that the '
+                        'extension filter bundle EAR file should be renamed '
+                        'to, or the directory where it should be downloaded '
+                        'to.')
     parser.add_argument('--no-valve',
                         help='Don\'t download the valve JAR file',
                         action='store_true')
@@ -305,9 +317,11 @@ def run():
             logging.basicConfig(level=logging.DEBUG)
 
     get_repose(url_root=args.url_root, valve_dest=args.valve_dest,
-               ear_dest=args.ear_dest, get_valve=not args.no_valve,
-               get_filter=not args.no_filter, version=args.version,
-               get_ext_filter=not args.no_ext_filter, snapshot=args.snapshot)
+               filter_dest=args.filter_dest,
+               ext_filter_dest=args.ext_filter_dest,
+               get_valve=not args.no_valve, get_filter=not args.no_filter,
+               version=args.version, get_ext_filter=not args.no_ext_filter,
+               snapshot=args.snapshot)
 
 
 if __name__ == '__main__':
