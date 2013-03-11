@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='narwhal',
-    version='0.1.2',
+    version='0.1.3',
     packages=['narwhal',],
     license='MIT License',
     long_description=open('README.txt').read(),
@@ -27,4 +27,10 @@ setup(
         'pyrax',
         'paramiko',
     ],
+    entry_points={
+        'console_scripts': [
+            'download-repose = narwhal.download_repose:run',
+            'run-repose = narwhal.run_repose:run'
+        ],
+    }
 )
