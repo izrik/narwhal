@@ -30,6 +30,7 @@ setup(
     entry_points={
         'console_scripts': [
             'download-repose = narwhal.download_repose:run'
+            'run-repose = narwhal.run_repose:run'
         ],
     }
 )
