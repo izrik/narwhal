@@ -27,4 +27,9 @@ setup(
         'pyrax',
         'paramiko',
     ],
+    entry_points={
+        'console_scripts': [
+            'download-repose = narwhal.download_repose:run'
+        ],
+    }
 )
