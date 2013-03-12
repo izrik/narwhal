@@ -7,6 +7,8 @@ import xml.etree.ElementTree as et
 import os
 import sys
 
+from . import __version__
+
 
 logger = logging.getLogger(__name__)
 
