@@ -8,6 +8,8 @@ import paramiko
 import getpass
 import pushy
 
+from . import __version__
+
 
 def create_server(credential_file=None, username=None, api_key=None,
                   image=None, flavor=None, server_name=None,

@@ -24,6 +24,8 @@ import Queue
 import time
 import requests
 
+from . import __version__
+
 
 logger = logging.getLogger(__name__)
 

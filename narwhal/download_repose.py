@@ -4,6 +4,8 @@ import argparse
 import logging
 import maven
 
+from . import __version__
+
 
 logger = logging.getLogger(__name__)
 

@@ -7,6 +7,8 @@ import string
 import xml.etree.ElementTree as et
 import pathutil
 
+from . import __version__
+
 
 def get_configs_folder():
     _script_filename = os.path.abspath(inspect.getfile(inspect.currentframe()))
