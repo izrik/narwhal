@@ -18,6 +18,8 @@ def get_configs_folder():
 
 
 def get_config_sets(configs_folder):
+    if not os.path.exists(configs_folder) or not os.path.isdir(configs_folder):
+        return
     for entry in os.listdir(configs_folder):
         if os.path.isdir('%s/%s' % (configs_folder, entry)):
             if os.path.exists(pathutil.join(configs_folder, entry,
