@@ -7,6 +7,8 @@ import string
 import xml.etree.ElementTree as et
 import pathutil
 
+from . import __version__
+
 
 def get_configs_folder():
     _script_filename = os.path.abspath(inspect.getfile(inspect.currentframe()))
@@ -16,6 +18,8 @@ def get_configs_folder():
 
 
 def get_config_sets(configs_folder):
+    if not os.path.exists(configs_folder) or not os.path.isdir(configs_folder):
+        return
     for entry in os.listdir(configs_folder):
         if os.path.isdir('%s/%s' % (configs_folder, entry)):
             if os.path.exists(pathutil.join(configs_folder, entry,
@@ -132,9 +136,14 @@ def run():
 
     except NamedConfigSetNotFoundException as e:
         print 'Error: %s' % str(e)
-        print 'Available config sets:'
+        found = False
         for cs in get_config_sets(configs_folder):
+            if not found:
+                print 'Available config sets:'
             print '  %s' % cs
+            found = True
+        if not found:
+            print 'No available config sets found'
 
 
 if __name__ == '__main__':

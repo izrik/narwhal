@@ -2,8 +2,9 @@
 
 import argparse
 import time
-
 import repose
+
+from . import __version__
 
 
 def run():

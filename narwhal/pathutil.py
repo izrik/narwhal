@@ -3,6 +3,8 @@
 import os
 import shutil
 
+from . import __version__
+
 
 def delete_folder(folder_name):
     if os.path.exists(folder_name):

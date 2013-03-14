@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 from setuptools import setup
+import narwhal
 
 setup(
     name='narwhal',
-    version='0.1.3',
-    packages=['narwhal',],
+    version=narwhal.__version__,
+    packages=['narwhal'],
     license='MIT License',
     long_description=open('README.txt').read(),
     author='Richard Sartor',
