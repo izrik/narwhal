@@ -136,9 +136,14 @@ def run():
 
     except NamedConfigSetNotFoundException as e:
         print 'Error: %s' % str(e)
-        print 'Available config sets:'
+        found = False
         for cs in get_config_sets(configs_folder):
+            if not found:
+                print 'Available config sets:'
             print '  %s' % cs
+            found = True
+        if not found:
+            print 'No available config sets found'
 
 
 if __name__ == '__main__':
