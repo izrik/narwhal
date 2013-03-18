@@ -7,6 +7,7 @@ import time
 import paramiko
 import getpass
 import pushy
+import sys
 
 from . import __version__
 
@@ -31,13 +32,13 @@ def create_server(credential_file=None, username=None, api_key=None,
     else:
         pyrax.set_credentials(username=username, api_key=api_key)
 
-    cs = pyrax.cloudservers
+    provider = pyrax.cloudservers
 
     if image is None:
-        image = [img for img in cs.images.list()
+        image = [img for img in provider.images.list()
                  if "CentOS 6.3" in img.name][0]
     if flavor is None:
-        flavor = [fl for fl in cs.flavors.list() if fl.ram == 1024][0]
+        flavor = [fl for fl in provider.flavors.list() if fl.ram == 1024][0]
 
     if server_name is None:
         t = time.localtime()
@@ -49,13 +50,13 @@ def create_server(credential_file=None, username=None, api_key=None,
             server_name_prefix = 'repose'
         server_name = '%s-%s-%s' % (server_name_prefix, date_string, whoami)
 
-    server = cs.servers.create(name=server_name,
-                               image=image, flavor=flavor)
+    server = provider.servers.create(name=server_name, image=image,
+                                     flavor=flavor)
 
     print time.asctime()
     n = 0
     while n < 600:
-        server2 = cs.servers.get(server.id)
+        server2 = provider.servers.get(server.id)
         if server2.status == u'ACTIVE':
             break
         if server2.status != u'BUILD' and server2.status != u'UNKNOWN':
