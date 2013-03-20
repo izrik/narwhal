@@ -12,31 +12,30 @@ import sys
 from . import __version__
 
 
-def create_server(credential_file=None, username=None, api_key=None,
-                  image=None, flavor=None, server_name=None,
+def create_server(provider=None, credential_file=None, username=None,
+                  api_key=None, image=None, flavor=None, server_name=None,
                   server_name_prefix=None):
     """Create a Server."""
 
-    if not (username or api_key or credential_file):
-        raise ValueError("No credentials specified")
-    if credential_file and (username or api_key):
-        raise ValueError("Conflicting credential options specified.")
-    if api_key and not username:
-        raise ValueError("No username specified")
-    if username and not api_key:
-        raise ValueError("No API key specified")
+    if provider is None:
+        if not (username or api_key or credential_file):
+            raise ValueError("No credentials specified")
+        if credential_file and (username or api_key):
+            raise ValueError("Conflicting credential options specified.")
+        if api_key and not username:
+            raise ValueError("No username specified")
+        if username and not api_key:
+            raise ValueError("No API key specified")
 
-    # TODO: get credentials from command line
-    if credential_file:
-        pyrax.set_credential_file(credential_file)
-    else:
-        pyrax.set_credentials(username=username, api_key=api_key)
-
-    provider = pyrax.cloudservers
+        if credential_file:
+            pyrax.set_credential_file(credential_file)
+        else:
+            pyrax.set_credentials(username=username, api_key=api_key)
+        provider = pyrax.cloudservers
 
     if image is None:
         image = [img for img in provider.images.list()
-                 if "CentOS 6.3" in img.name][0]
+                 if "centos 6.3" in img.name.lower()][0]
     if flavor is None:
         flavor = [fl for fl in provider.flavors.list() if fl.ram == 1024][0]
 
