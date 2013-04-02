@@ -13,7 +13,8 @@ def run():
                         'parameters.')
     parser.add_argument(metavar='config-set', dest='config_set',
                         help='A set of configuration files to copy. Must be a '
-                        'named config set in the configs/ folder.')
+                        'named config set in the configs/ folder or a path to '
+                        'a ".config-set.xml" file.')
     parser.add_argument('--dest-path', dest='dest_path',
                         help='Where to put the files.')
     args = parser.parse_args()
