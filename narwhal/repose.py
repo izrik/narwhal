@@ -84,7 +84,7 @@ class ReposeValve:
 
         pargs.append('start')
 
-        logger.debug('Starting valve with the following commonad line: "%s"' %
+        logger.debug('Starting valve with the following command line: "%s"' %
                      ' '.join(pargs))
 
         self.proc = subprocess.Popen(pargs, stdout=subprocess.PIPE,
