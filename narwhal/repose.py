@@ -84,7 +84,7 @@ class ReposeValve:
 
         pargs.append('start')
 
-        logger.debug('Starting valve with the following commonad line: "%s"' %
+        logger.debug('Starting valve with the following command line: "%s"' %
                      ' '.join(pargs))
 
         self.proc = subprocess.Popen(pargs, stdout=subprocess.PIPE,
@@ -136,11 +136,11 @@ class ReposeValve:
 class ThreadedStreamReader:
     def __init__(self, stream):
         self.stream = stream
+        self.queue = Queue.Queue()
+        self._shutdown = False
         self.thread = threading.Thread(target=self._thread_target)
         self.thread.daemon = True
         self.thread.start()
-        self.queue = Queue.Queue()
-        self._shutdown = False
 
     def _thread_target(self):
         for line in self.stream.xreadlines():
