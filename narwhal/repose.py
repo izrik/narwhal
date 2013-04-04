@@ -136,11 +136,11 @@ class ReposeValve:
 class ThreadedStreamReader:
     def __init__(self, stream):
         self.stream = stream
+        self.queue = Queue.Queue()
+        self._shutdown = False
         self.thread = threading.Thread(target=self._thread_target)
         self.thread.daemon = True
         self.thread.start()
-        self.queue = Queue.Queue()
-        self._shutdown = False
 
     def _thread_target(self):
         for line in self.stream.xreadlines():
