@@ -83,6 +83,31 @@ def process_config_set(config_set_name, destination_path=None,
             copy_and_apply_params(file_source, file_dest, params, verbose)
 
 
+def process_file(filename, dest_path=None, params=None, verbose=False):
+
+    if params is None:
+        params = {}
+
+    file_basename = os.path.basename(filename)
+
+    if dest_path is not None:
+        create_folder(dest_path)
+        file_dest = join_path(dest_path, file_basename)
+    else:
+        file_dest = file_basename
+
+    if verbose:
+        applying = ''
+        if len(params) > 0:
+            # TODO: maybe output parameters provided/substituted?
+            applying = ', applying config parameters'
+
+        print ('Copy from "%s" to "%s"%s' %
+               (filename, file_dest, applying))
+
+    copy_and_apply_params(filename, file_dest, params, verbose)
+
+
 class NamedConfigSetNotFoundException(Exception):
     def __init__(self, name):
         self.name = name
