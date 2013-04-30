@@ -129,8 +129,18 @@ class ReposeValve:
             self.proc.kill()
         logger.debug('Repose stopped (pid=%i)' % self.proc.pid)
 
-    def wait(self):
-        return self.proc.communicate()
+    def wait(self, timeout=30):
+        t = time.time()
+        while True:
+            logger.debug('polling')
+            if self.proc.poll() is not None:
+                logger.debug('child process stopped')
+                return
+            t2 = time.time()
+            if timeout is not None and t2 - t1 > timeout:
+                logger.debug('timed out')
+                return
+            time.sleep(1)
 
 
 class ThreadedStreamReader:
