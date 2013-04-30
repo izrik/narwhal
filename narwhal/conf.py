@@ -83,6 +83,52 @@ def process_config_set(config_set_name, destination_path=None,
             copy_and_apply_params(file_source, file_dest, params, verbose)
 
 
+def process_file(filename, dest_path=None, params=None, verbose=False):
+
+    if params is None:
+        params = {}
+
+    file_basename = os.path.basename(filename)
+
+    if dest_path is not None:
+        create_folder(dest_path)
+        file_dest = join_path(dest_path, file_basename)
+    else:
+        file_dest = file_basename
+
+    if verbose:
+        applying = ''
+        if len(params) > 0:
+            # TODO: maybe output parameters provided/substituted?
+            applying = ', applying config parameters'
+
+        print ('Copy from "%s" to "%s"%s' %
+               (filename, file_dest, applying))
+
+    copy_and_apply_params(filename, file_dest, params, verbose)
+
+
+def process_folder_contents(folder, dest_path=None, params=None,
+                            verbose=False, recurse=True):
+    """Processes all of the config files within a folder. If recurse is True,
+    then all sub-folders will be processed as well, copying the directory
+    structure."""
+
+    if dest_path is None:
+        dest_path = '.'
+
+    for file in os.listdir(folder):
+        full_file_path = join_path(folder, file)
+        if os.path.isdir(full_file_path):
+            if recurse:
+                process_folder_contents(folder=full_file_path,
+                                        dest_path=join_path(dest_path, file),
+                                        params=params, verbose=verbose)
+        else:
+            process_file(filename=full_file_path, dest_path=dest_path,
+                         params=params, verbose=verbose)
+
+
 class NamedConfigSetNotFoundException(Exception):
     def __init__(self, name):
         self.name = name
