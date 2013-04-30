@@ -122,7 +122,10 @@ class ReposeValve:
             if wait:
                 logger.debug('Waiting for process to end (pid=%i)' %
                              self.proc.pid)
-                self.wait()
+                self.wait(timeout=30)
+                if self.proc.poll() is None:
+                    # it timed out while waiting
+                    raise Exception
         except:
             logger.debug('Couldn\'t stop using the stop port, killing instead '
                          '(pid=%i)' % self.proc.pid)
