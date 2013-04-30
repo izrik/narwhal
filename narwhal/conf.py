@@ -108,6 +108,27 @@ def process_file(filename, dest_path=None, params=None, verbose=False):
     copy_and_apply_params(filename, file_dest, params, verbose)
 
 
+def process_folder_contents(folder, dest_path=None, params=None,
+                            verbose=False, recurse=True):
+    """Processes all of the config files within a folder. If recurse is True,
+    then all sub-folders will be processed as well, copying the directory
+    structure."""
+
+    if dest_path is None:
+        dest_path = '.'
+
+    for file in os.listdir(folder):
+        full_file_path = join_path(folder, file)
+        if os.path.isdir(full_file_path):
+            if recurse:
+                process_folder_contents(folder=full_file_path,
+                                        dest_path=join_path(dest_path, file),
+                                        params=params, verbose=verbose)
+        else:
+            process_file(filename=full_file_path, dest_path=dest_path,
+                         params=params, verbose=verbose)
+
+
 class NamedConfigSetNotFoundException(Exception):
     def __init__(self, name):
         self.name = name
