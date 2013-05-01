@@ -35,7 +35,8 @@ _default_jar_file = 'usr/share/repose/repose-valve.jar'
 
 class ReposeValve:
     def __init__(self, config_dir, port=None, https_port=None, jar_file=None,
-                 stop_port=None, insecure=False, wait_on_start=False):
+                 stop_port=None, insecure=False, wait_on_start=False,
+                 wait_timeout=None):
         logger.debug('Creating new ReposeValve object (config_dir=%s, '
                      'jar_file=%s, stop_port=%s, insecure=%s)' %
                      (config_dir, jar_file, stop_port, insecure))
@@ -93,17 +94,19 @@ class ReposeValve:
         self.stderr = ThreadedStreamReader(self.proc.stderr)
 
         if wait_on_start:
-            wait_count = 0
+            t = time.time()
             while True:
                 try:
-                    sc = requests.get(wait_url)
-                    if int(sc) == 200:
+                    resp = requests.get(wait_url)
+                    if int(resp.status_code) < 500:
+                        # if it's not a server error, then it's done starting
                         break
                 except:
                     pass
                 time.sleep(1)
-                wait_count += 1
-                if wait_count > 30:
+                t2 = time.time()
+                if wait_timeout is not None and t2 - t1 > wait_timeout:
+                    logger.debug('wait_on_start timed out')
                     break
 
         logger.debug('New ReposeValve object initialized (pid=%i)' %
@@ -122,15 +125,28 @@ class ReposeValve:
             if wait:
                 logger.debug('Waiting for process to end (pid=%i)' %
                              self.proc.pid)
-                self.wait()
+                self.wait(timeout=30)
+                if self.proc.poll() is None:
+                    # it timed out while waiting
+                    raise Exception
         except:
             logger.debug('Couldn\'t stop using the stop port, killing instead '
                          '(pid=%i)' % self.proc.pid)
             self.proc.kill()
         logger.debug('Repose stopped (pid=%i)' % self.proc.pid)
 
-    def wait(self):
-        return self.proc.communicate()
+    def wait(self, timeout=30):
+        t = time.time()
+        while True:
+            logger.debug('polling')
+            if self.proc.poll() is not None:
+                logger.debug('child process stopped')
+                return
+            t2 = time.time()
+            if timeout is not None and t2 - t1 > timeout:
+                logger.debug('timed out')
+                return
+            time.sleep(1)
 
 
 class ThreadedStreamReader:
