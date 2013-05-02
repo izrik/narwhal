@@ -15,7 +15,18 @@ from . import __version__
 def create_server(provider=None, credential_file=None, username=None,
                   api_key=None, image=None, flavor=None, server_name=None,
                   server_name_prefix=None):
-    """Create a Server."""
+    """Create a Server. Returns :class:`Server` object with additional
+    attributes.
+
+    :param provider: openstack client that will be used to spin up the new server. If none is specified, a default will be used via pyrax.
+    :param credential_file: path to a pyrax credentials file that will be used to authenticate the default :param:`provider`.
+    :param username: username to give to the default :param:`provider`. If a :param:`credential_file` is specified, this parameter is ignored.
+    :param api_key: api key to give to the default :param:`provider`. If :param:`credential_file` is specified, this parameter is ignored.
+    :param image: the server image id to use when creating the server. If ``None``, CentOS 6.3 will be used.
+    :param flavor: the flavor id to use when creating the server. If ``None``, a 1024GB flavor will be used.
+    :param server_name: the name of the server.
+    :param server_name_prefix: the prefix portion of the server name. The server name will be of the form "prefix-datetime-user". If :param:`server_name` is specified, this parameter is ignored. If ``None``, the string 'repose' is used.
+    """
 
     if provider is None:
         if not (username or api_key or credential_file):
@@ -74,24 +85,35 @@ def create_server(provider=None, credential_file=None, username=None,
 
 
 def add_server_to_known_hosts_file(server):
+    """Get the IP address of the :param:`server`, grab it's host public key,
+    and append it to the current user's known_hosts file.
+
+    :param server: the server
+    """
     ips = server.networks['public']
     os.system('ssh-keyscan %s 2>/dev/null >> ~/.ssh/known_hosts' %
               ' '.join(ips))
 
 
 def install_prereqs(server):
+    """ Establish an SSH connection to the :param:`server`"""
+
     username = 'root'
     password = server.adminPass
     ips = server.networks['public']
 
+    priv = paramiko.RSAKey.generate(bits=2048)
+
     ssh_client = paramiko.SSHClient()
-    ssh_client.load_system_host_keys()
+    ssh_client.get_host_keys().add(server.name, 'rsa', priv)
+    #ssh_client.load_system_host_keys()
     server.ssh_client = ssh_client
 
     connected = False
 
     for ip in ips:
         try:
+            ssh_client.get_host_keys().add(ip, 'rsa', priv)
             ssh_client.connect(hostname=ip, username=username,
                                password=password)
             connected = True
@@ -169,7 +191,7 @@ def create_rserver(config_dir, port, credential_file=None, username=None,
                            username=username, api_key=api_key,
                            image=image, flavor=flavor,
                            server_name_prefix=server_name_prefix)
-    add_server_to_known_hosts_file(server)
+    #add_server_to_known_hosts_file(server)
     install_prereqs(server)
     downloads = install_repose(server)
 
