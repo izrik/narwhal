@@ -94,7 +94,7 @@ class ReposeValve:
         self.stderr = ThreadedStreamReader(self.proc.stderr)
 
         if wait_on_start:
-            t = time.time()
+            t1 = time.time()
             while True:
                 try:
                     resp = requests.get(wait_url)
@@ -136,7 +136,7 @@ class ReposeValve:
         logger.debug('Repose stopped (pid=%i)' % self.proc.pid)
 
     def wait(self, timeout=30):
-        t = time.time()
+        t1 = time.time()
         while True:
             logger.debug('polling')
             if self.proc.poll() is not None:
