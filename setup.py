@@ -24,9 +24,6 @@ setup(
     install_requires=[
         'requests',
         'argparse',
-        'pushy',
-        'pyrax',
-        'paramiko',
     ],
     entry_points={
         'console_scripts': [
