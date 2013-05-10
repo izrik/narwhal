@@ -103,20 +103,7 @@ class ReposeValve:
         else:
             wait_url = 'https://localhost:%s' % str(self.https_port)
 
-        t1 = time.time()
-        while True:
-            try:
-                resp = requests.get(wait_url)
-                if int(resp.status_code) != 500:
-                    # if it's not a 500 error, then it's done starting
-                    break
-            except:
-                pass
-            time.sleep(1)
-            t2 = time.time()
-            if wait_timeout is not None and t2 - t1 > wait_timeout:
-                logger.debug('wait_on_start timed out')
-                break
+        wait_for_node_to_start(url=wait_url, wait_timeout=wait_timeout)
 
     def stop(self, wait=True):
         try:
@@ -153,6 +140,30 @@ class ReposeValve:
                 logger.debug('timed out')
                 return
             time.sleep(1)
+
+
+def wait_for_node_to_start(url=None, scheme='http', port=None,
+                           wait_timeout=None):
+    if url is None:
+        if port is None:
+            raise ArgumentError("Must specify either url or port "
+                                "parameter.")
+        url = '%s://localhost:%s' % (scheme, port)
+
+    t1 = time.time()
+    while True:
+        try:
+            resp = requests.get(url)
+            if int(resp.status_code) != 500:
+                # if it's not a 500 error, then it's done starting
+                break
+        except:
+            pass
+        time.sleep(1)
+        t2 = time.time()
+        if wait_timeout is not None and t2 - t1 > wait_timeout:
+            logger.debug('wait_on_start timed out')
+            break
 
 
 class ThreadedStreamReader:
