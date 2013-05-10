@@ -50,18 +50,13 @@ class ReposeValve:
             else:
                 stop_port = port + 1000
 
-        if wait_on_start:
-            if port is not None:
-                wait_url = 'http://localhost:%s/' % str(port)
-            elif https_port is not None:
-                wait_url = 'https://localhost:%s' % str(https_port)
-            else:
-                raise ValueError("Either 'port' and/or 'https_port' must "
-                                 "specify a port number if 'wait_on_start' is "
-                                 "True")
+        if wait_on_start and port is None and https_port is None:
+            raise ValueError("Either 'port' and/or 'https_port' must specify "
+                             "a port number if 'wait_on_start' is True")
 
         self.config_dir = config_dir
         self.port = port
+        self.https_port = https_port
         self.jar_file = jar_file
         self.stop_port = stop_port
         self.insecure = insecure
@@ -94,23 +89,21 @@ class ReposeValve:
         self.stderr = ThreadedStreamReader(self.proc.stderr)
 
         if wait_on_start:
-            t1 = time.time()
-            while True:
-                try:
-                    resp = requests.get(wait_url)
-                    if int(resp.status_code) < 500:
-                        # if it's not a server error, then it's done starting
-                        break
-                except:
-                    pass
-                time.sleep(1)
-                t2 = time.time()
-                if wait_timeout is not None and t2 - t1 > wait_timeout:
-                    logger.debug('wait_on_start timed out')
-                    break
+            self.wait_for_node_to_start(wait_timeout=wait_timeout)
 
         logger.debug('New ReposeValve object initialized (pid=%i)' %
                      self.proc.pid)
+
+    def wait_for_node_to_start(self, wait_timeout=None):
+        if self.port is None and self.https_port is None:
+            raise ValueError("No valid port was set. Cannot wait on the node.")
+
+        if self.port is not None:
+            wait_url = 'http://localhost:%s/' % str(self.port)
+        else:
+            wait_url = 'https://localhost:%s' % str(self.https_port)
+
+        wait_for_node_to_start(url=wait_url, wait_timeout=wait_timeout)
 
     def stop(self, wait=True):
         try:
@@ -147,6 +140,30 @@ class ReposeValve:
                 logger.debug('timed out')
                 return
             time.sleep(1)
+
+
+def wait_for_node_to_start(url=None, scheme='http', port=None,
+                           wait_timeout=None):
+    if url is None:
+        if port is None:
+            raise ArgumentError("Must specify either url or port "
+                                "parameter.")
+        url = '%s://localhost:%s' % (scheme, port)
+
+    t1 = time.time()
+    while True:
+        try:
+            resp = requests.get(url)
+            if int(resp.status_code) != 500:
+                # if it's not a 500 error, then it's done starting
+                break
+        except:
+            pass
+        time.sleep(1)
+        t2 = time.time()
+        if wait_timeout is not None and t2 - t1 > wait_timeout:
+            logger.debug('wait_on_start timed out')
+            break
 
 
 class ThreadedStreamReader:
