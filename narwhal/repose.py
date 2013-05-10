@@ -98,8 +98,8 @@ class ReposeValve:
             while True:
                 try:
                     resp = requests.get(wait_url)
-                    if int(resp.status_code) < 500:
-                        # if it's not a server error, then it's done starting
+                    if int(resp.status_code) != 500:
+                        # if it's not a 500 error, then it's done starting
                         break
                 except:
                     pass
