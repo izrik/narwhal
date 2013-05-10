@@ -1,1 +1,2 @@
-include LICENSE
+include LICENSE test_narwhal.py
+recursive-include test-configs *
