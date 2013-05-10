@@ -50,15 +50,9 @@ class ReposeValve:
             else:
                 stop_port = port + 1000
 
-        if wait_on_start:
-            if port is not None:
-                wait_url = 'http://localhost:%s/' % str(port)
-            elif https_port is not None:
-                wait_url = 'https://localhost:%s' % str(https_port)
-            else:
-                raise ValueError("Either 'port' and/or 'https_port' must "
-                                 "specify a port number if 'wait_on_start' is "
-                                 "True")
+        if wait_on_start and port is None and https_port is None:
+            raise ValueError("Either 'port' and/or 'https_port' must specify "
+                             "a port number if 'wait_on_start' is True")
 
         self.config_dir = config_dir
         self.port = port
@@ -94,6 +88,10 @@ class ReposeValve:
         self.stderr = ThreadedStreamReader(self.proc.stderr)
 
         if wait_on_start:
+            if port is not None:
+                wait_url = 'http://localhost:%s/' % str(port)
+            else:
+                wait_url = 'https://localhost:%s' % str(https_port)
             t1 = time.time()
             while True:
                 try:
