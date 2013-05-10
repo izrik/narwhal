@@ -56,6 +56,7 @@ class ReposeValve:
 
         self.config_dir = config_dir
         self.port = port
+        self.https_port = https_port
         self.jar_file = jar_file
         self.stop_port = stop_port
         self.insecure = insecure
@@ -88,27 +89,34 @@ class ReposeValve:
         self.stderr = ThreadedStreamReader(self.proc.stderr)
 
         if wait_on_start:
-            if port is not None:
-                wait_url = 'http://localhost:%s/' % str(port)
-            else:
-                wait_url = 'https://localhost:%s' % str(https_port)
-            t1 = time.time()
-            while True:
-                try:
-                    resp = requests.get(wait_url)
-                    if int(resp.status_code) != 500:
-                        # if it's not a 500 error, then it's done starting
-                        break
-                except:
-                    pass
-                time.sleep(1)
-                t2 = time.time()
-                if wait_timeout is not None and t2 - t1 > wait_timeout:
-                    logger.debug('wait_on_start timed out')
-                    break
+            self.wait_for_node_to_start(wait_timeout=wait_timeout)
 
         logger.debug('New ReposeValve object initialized (pid=%i)' %
                      self.proc.pid)
+
+    def wait_for_node_to_start(self, wait_timeout=None):
+        if self.port is None and self.https_port is None:
+            raise ValueError("No valid port was set. Cannot wait on the node.")
+
+        if self.port is not None:
+            wait_url = 'http://localhost:%s/' % str(self.port)
+        else:
+            wait_url = 'https://localhost:%s' % str(self.https_port)
+
+        t1 = time.time()
+        while True:
+            try:
+                resp = requests.get(wait_url)
+                if int(resp.status_code) != 500:
+                    # if it's not a 500 error, then it's done starting
+                    break
+            except:
+                pass
+            time.sleep(1)
+            t2 = time.time()
+            if wait_timeout is not None and t2 - t1 > wait_timeout:
+                logger.debug('wait_on_start timed out')
+                break
 
     def stop(self, wait=True):
         try:
