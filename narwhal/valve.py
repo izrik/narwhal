@@ -33,11 +33,11 @@ logger = logging.getLogger(__name__)
 _default_jar_file = 'usr/share/repose/repose-valve.jar'
 
 
-class ReposeValve:
+class Valve:
     def __init__(self, config_dir, port=None, https_port=None, jar_file=None,
                  stop_port=None, insecure=False, wait_on_start=False,
                  wait_timeout=None):
-        logger.debug('Creating new ReposeValve object (config_dir=%s, '
+        logger.debug('Creating new Valve object (config_dir=%s, '
                      'jar_file=%s, stop_port=%s, insecure=%s)' %
                      (config_dir, jar_file, stop_port, insecure))
 
@@ -91,7 +91,7 @@ class ReposeValve:
         if wait_on_start:
             self.wait_for_node_to_start(wait_timeout=wait_timeout)
 
-        logger.debug('New ReposeValve object initialized (pid=%i)' %
+        logger.debug('New Valve object initialized (pid=%i)' %
                      self.proc.pid)
 
     def wait_for_node_to_start(self, wait_timeout=None):
@@ -111,7 +111,7 @@ class ReposeValve:
             self.stdout.shutdown()
             self.stderr.shutdown()
 
-            logger.debug('Attempting to stop ReposeValve object (pid=%i, '
+            logger.debug('Attempting to stop Valve object (pid=%i, '
                          'stop_port=%s)' % (self.proc.pid, self.stop_port))
             s = socket.create_connection(('localhost', self.stop_port))
             s.send('stop\r\n')
@@ -126,7 +126,7 @@ class ReposeValve:
             logger.debug('Couldn\'t stop using the stop port, killing instead '
                          '(pid=%i)' % self.proc.pid)
             self.proc.kill()
-        logger.debug('Repose stopped (pid=%i)' % self.proc.pid)
+        logger.debug('Valve stopped (pid=%i)' % self.proc.pid)
 
     def wait(self, timeout=30):
         t1 = time.time()
