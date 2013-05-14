@@ -44,13 +44,6 @@ class Valve:
         if jar_file is None:
             jar_file = _default_jar_file
 
-        if conn_fw is not None:
-            fws = ['jersey', 'apache']
-            if conn_fw not in fws:
-                raise ValueError('"%s" is not a valid connection framework. '
-                                 'If sepecified, conn_fw must be one of: '
-                                 '[%s]' % conn_fw, ', '.join(fws))
-
         if stop_port is None:
             if port is None:
                 stop_port = 9090
@@ -61,12 +54,12 @@ class Valve:
             raise ValueError("Either 'port' and/or 'https_port' must specify "
                              "a port number if 'wait_on_start' is True")
 
-        self.config_dir = config_dir
-        self.port = port
-        self.https_port = https_port
-        self.jar_file = jar_file
-        self.stop_port = stop_port
-        self.insecure = insecure
+        if conn_fw is not None:
+            fws = ['jersey', 'apache']
+            if conn_fw not in fws:
+                raise ValueError('"%s" is not a valid connection framework. '
+                                 'If sepecified, conn_fw must be one of: '
+                                 '[%s]' % conn_fw, ', '.join(fws))
 
         pargs = [
             'java', '-jar', jar_file,
@@ -90,6 +83,13 @@ class Valve:
             pargs.append(conn_fw)
 
         pargs.append('start')
+
+        self.config_dir = config_dir
+        self.port = port
+        self.https_port = https_port
+        self.jar_file = jar_file
+        self.stop_port = stop_port
+        self.insecure = insecure
 
         logger.debug('Starting valve with the following command line: "%s"' %
                      ' '.join(pargs))
