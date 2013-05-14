@@ -61,28 +61,10 @@ class Valve:
                                  'If sepecified, conn_fw must be one of: '
                                  '[%s]' % conn_fw, ', '.join(fws))
 
-        pargs = [
-            'java', '-jar', jar_file,
-            '-c', config_dir,
-            '-s', str(stop_port)
-        ]
-
-        if port is not None:
-            pargs.append('-p')
-            pargs.append(str(port))
-
-        if https_port is not None:
-            pargs.append('-ps')
-            pargs.append(str(https_port))
-
-        if insecure:
-            pargs.append('-k')
-
-        if conn_fw is not None:
-            pargs.append('-cf')
-            pargs.append(conn_fw)
-
-        pargs.append('start')
+        pargs = self.construct_args(config_dir=config_dir, port=port,
+                                    https_port=https_port, jar_file=jar_file,
+                                    stop_port=stop_port, insecure=insecure,
+                                    conn_fw=conn_fw)
 
         self.config_dir = config_dir
         self.port = port
@@ -104,6 +86,40 @@ class Valve:
 
         logger.debug('New Valve object initialized (pid=%i)' %
                      self.proc.pid)
+
+    @staticmethod
+    def construct_args(config_dir, port, https_port, jar_file, stop_port,
+                       insecure, conn_fw):
+        """Take the provided parameters and turn them into the command line
+        arguments to invoke Valve."""
+
+        pargs = [
+            'java', '-jar', jar_file,
+            '-c', config_dir,
+        ]
+
+        if stop_port is not None:
+            pargs.append('-s')
+            pargs.append(str(stop_port))
+
+        if port is not None:
+            pargs.append('-p')
+            pargs.append(str(port))
+
+        if https_port is not None:
+            pargs.append('-ps')
+            pargs.append(str(https_port))
+
+        if insecure:
+            pargs.append('-k')
+
+        if conn_fw is not None:
+            pargs.append('-cf')
+            pargs.append(conn_fw)
+
+        pargs.append('start')
+
+        return pargs
 
     def wait_for_node_to_start(self, wait_timeout=None):
         if self.port is None and self.https_port is None:
