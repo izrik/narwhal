@@ -33,11 +33,11 @@ logger = logging.getLogger(__name__)
 _default_jar_file = 'usr/share/repose/repose-valve.jar'
 
 
-class ReposeValve:
+class Valve:
     def __init__(self, config_dir, port=None, https_port=None, jar_file=None,
                  stop_port=None, insecure=False, wait_on_start=False,
-                 wait_timeout=None):
-        logger.debug('Creating new ReposeValve object (config_dir=%s, '
+                 wait_timeout=None, conn_fw=None):
+        logger.debug('Creating new Valve object (config_dir=%s, '
                      'jar_file=%s, stop_port=%s, insecure=%s)' %
                      (config_dir, jar_file, stop_port, insecure))
 
@@ -54,31 +54,24 @@ class ReposeValve:
             raise ValueError("Either 'port' and/or 'https_port' must specify "
                              "a port number if 'wait_on_start' is True")
 
+        if conn_fw is not None:
+            fws = ['jersey', 'apache']
+            if conn_fw not in fws:
+                raise ValueError('"%s" is not a valid connection framework. '
+                                 'If sepecified, conn_fw must be one of: '
+                                 '[%s]' % conn_fw, ', '.join(fws))
+
+        pargs = self.construct_args(config_dir=config_dir, port=port,
+                                    https_port=https_port, jar_file=jar_file,
+                                    stop_port=stop_port, insecure=insecure,
+                                    conn_fw=conn_fw)
+
         self.config_dir = config_dir
         self.port = port
         self.https_port = https_port
         self.jar_file = jar_file
         self.stop_port = stop_port
         self.insecure = insecure
-
-        pargs = [
-            'java', '-jar', jar_file,
-            '-c', config_dir,
-            '-s', str(stop_port)
-        ]
-
-        if port is not None:
-            pargs.append('-p')
-            pargs.append(str(port))
-
-        if https_port is not None:
-            pargs.append('-ps')
-            pargs.append(str(https_port))
-
-        if insecure:
-            pargs.append('-k')
-
-        pargs.append('start')
 
         logger.debug('Starting valve with the following command line: "%s"' %
                      ' '.join(pargs))
@@ -91,8 +84,42 @@ class ReposeValve:
         if wait_on_start:
             self.wait_for_node_to_start(wait_timeout=wait_timeout)
 
-        logger.debug('New ReposeValve object initialized (pid=%i)' %
+        logger.debug('New Valve object initialized (pid=%i)' %
                      self.proc.pid)
+
+    @staticmethod
+    def construct_args(config_dir, port, https_port, jar_file, stop_port,
+                       insecure, conn_fw):
+        """Take the provided parameters and turn them into the command line
+        arguments to invoke Valve."""
+
+        pargs = [
+            'java', '-jar', jar_file,
+            '-c', config_dir,
+        ]
+
+        if stop_port is not None:
+            pargs.append('-s')
+            pargs.append(str(stop_port))
+
+        if port is not None:
+            pargs.append('-p')
+            pargs.append(str(port))
+
+        if https_port is not None:
+            pargs.append('-ps')
+            pargs.append(str(https_port))
+
+        if insecure:
+            pargs.append('-k')
+
+        if conn_fw is not None:
+            pargs.append('-cf')
+            pargs.append(conn_fw)
+
+        pargs.append('start')
+
+        return pargs
 
     def wait_for_node_to_start(self, wait_timeout=None):
         if self.port is None and self.https_port is None:
@@ -111,7 +138,7 @@ class ReposeValve:
             self.stdout.shutdown()
             self.stderr.shutdown()
 
-            logger.debug('Attempting to stop ReposeValve object (pid=%i, '
+            logger.debug('Attempting to stop Valve object (pid=%i, '
                          'stop_port=%s)' % (self.proc.pid, self.stop_port))
             s = socket.create_connection(('localhost', self.stop_port))
             s.send('stop\r\n')
@@ -126,7 +153,7 @@ class ReposeValve:
             logger.debug('Couldn\'t stop using the stop port, killing instead '
                          '(pid=%i)' % self.proc.pid)
             self.proc.kill()
-        logger.debug('Repose stopped (pid=%i)' % self.proc.pid)
+        logger.debug('Valve stopped (pid=%i)' % self.proc.pid)
 
     def wait(self, timeout=30):
         t1 = time.time()
