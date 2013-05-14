@@ -59,6 +59,131 @@ class TestValveWaitOnStart(unittest.TestCase):
         logger.debug('good to go')
 
 
+class TestValveArgs(unittest.TestCase):
+    def test_config_dir(self):
+        pargs = valve.Valve.construct_args(config_dir='asdf', port=None,
+                                           https_port=None,
+                                           jar_file=valve._default_jar_file,
+                                           stop_port=None, insecure=False,
+                                           conn_fw=None)
+        self.assertEqual(pargs, ['java', '-jar', valve._default_jar_file,
+                                 '-c', 'asdf', 'start'])
+
+        pargs = valve.Valve.construct_args(config_dir='path/to/configs',
+                                           port=None, https_port=None,
+                                           jar_file=valve._default_jar_file,
+                                           stop_port=None, insecure=False,
+                                           conn_fw=None)
+        self.assertEqual(pargs, ['java', '-jar', valve._default_jar_file,
+                                 '-c', 'path/to/configs', 'start'])
+
+        pargs = valve.Valve.construct_args(config_dir='path with spaces',
+                                           port=None, https_port=None,
+                                           jar_file=valve._default_jar_file,
+                                           stop_port=None, insecure=False,
+                                           conn_fw=None)
+        self.assertEqual(pargs, ['java', '-jar', valve._default_jar_file,
+                                 '-c', 'path with spaces', 'start'])
+
+    def test_port(self):
+        pass
+
+    def test_https_port(self):
+        pass
+
+    def test_jar_file(self):
+        pargs = valve.Valve.construct_args(config_dir='conf', port=None,
+                                           https_port=None,
+                                           jar_file=valve._default_jar_file,
+                                           stop_port=None, insecure=False,
+                                           conn_fw=None)
+        self.assertEqual(pargs, ['java', '-jar', valve._default_jar_file,
+                                 '-c', 'conf', 'start'])
+
+        pargs = valve.Valve.construct_args(config_dir='conf', port=None,
+                                           https_port=None,
+                                           jar_file='path/to/file.jar',
+                                           stop_port=None, insecure=False,
+                                           conn_fw=None)
+        self.assertEqual(pargs, ['java', '-jar', 'path/to/file.jar',
+                                 '-c', 'conf', 'start'])
+
+        pargs = valve.Valve.construct_args(config_dir='conf', port=None,
+                                           https_port=None,
+                                           jar_file='filename with spaces.jar',
+                                           stop_port=None, insecure=False,
+                                           conn_fw=None)
+        self.assertEqual(pargs, ['java', '-jar', 'filename with spaces.jar',
+                                 '-c', 'conf', 'start'])
+
+    def test_stop_port(self):
+        pargs = valve.Valve.construct_args(config_dir='conf', port=None,
+                                           https_port=None,
+                                           jar_file=valve._default_jar_file,
+                                           stop_port=None, insecure=False,
+                                           conn_fw=None)
+        self.assertEqual(pargs, ['java', '-jar', valve._default_jar_file,
+                                 '-c', 'conf', 'start'])
+
+        pargs = valve.Valve.construct_args(config_dir='conf', port=None,
+                                           https_port=None,
+                                           jar_file=valve._default_jar_file,
+                                           stop_port=7777, insecure=False,
+                                           conn_fw=None)
+        self.assertEqual(pargs, ['java', '-jar', valve._default_jar_file,
+                                 '-c', 'conf', '-s', '7777', 'start'])
+
+        pargs = valve.Valve.construct_args(config_dir='conf', port=None,
+                                           https_port=None,
+                                           jar_file=valve._default_jar_file,
+                                           stop_port='8888', insecure=False,
+                                           conn_fw=None)
+        self.assertEqual(pargs, ['java', '-jar', valve._default_jar_file,
+                                 '-c', 'conf', '-s', '8888', 'start'])
+
+    def test_insecure(self):
+        pargs = valve.Valve.construct_args(config_dir='conf', port=None,
+                                           https_port=None,
+                                           jar_file=valve._default_jar_file,
+                                           stop_port=None, insecure=False,
+                                           conn_fw=None)
+        self.assertEqual(pargs, ['java', '-jar', valve._default_jar_file,
+                                 '-c', 'conf', 'start'])
+
+        pargs = valve.Valve.construct_args(config_dir='conf', port=None,
+                                           https_port=None,
+                                           jar_file=valve._default_jar_file,
+                                           stop_port=None, insecure=True,
+                                           conn_fw=None)
+        self.assertEqual(pargs, ['java', '-jar', valve._default_jar_file,
+                                 '-c', 'conf', '-k', 'start'])
+
+    def test_conn_fw(self):
+        pargs = valve.Valve.construct_args(config_dir='conf', port=None,
+                                           https_port=None,
+                                           jar_file=valve._default_jar_file,
+                                           stop_port=None, insecure=False,
+                                           conn_fw=None)
+        self.assertEqual(pargs, ['java', '-jar', valve._default_jar_file,
+                                 '-c', 'conf', 'start'])
+
+        pargs = valve.Valve.construct_args(config_dir='conf', port=None,
+                                           https_port=None,
+                                           jar_file=valve._default_jar_file,
+                                           stop_port=None, insecure=False,
+                                           conn_fw='jersey')
+        self.assertEqual(pargs, ['java', '-jar', valve._default_jar_file,
+                                 '-c', 'conf', '-cf', 'jersey', 'start'])
+
+        pargs = valve.Valve.construct_args(config_dir='conf', port=None,
+                                           https_port=None,
+                                           jar_file=valve._default_jar_file,
+                                           stop_port=None, insecure=False,
+                                           conn_fw='apache')
+        self.assertEqual(pargs, ['java', '-jar', valve._default_jar_file,
+                                 '-c', 'conf', '-cf', 'apache', 'start'])
+
+
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('--print-log', help="Print the log to STDERR.",
