@@ -40,7 +40,8 @@ class TestValveWaitOnStart(unittest.TestCase):
     def setUp(self):
         self.valve = None
         logger.debug('Setting config files')
-        conf.process_folder_contents(folder='test-configs', dest_path='test/conf',
+        conf.process_folder_contents(folder='test-configs',
+                                     dest_path='test/conf',
                                      params={'port': 12345})
 
     def tearDown(self):
