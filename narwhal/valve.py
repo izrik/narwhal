@@ -36,13 +36,20 @@ _default_jar_file = 'usr/share/repose/repose-valve.jar'
 class Valve:
     def __init__(self, config_dir, port=None, https_port=None, jar_file=None,
                  stop_port=None, insecure=False, wait_on_start=False,
-                 wait_timeout=None):
+                 wait_timeout=None, conn_fw=None):
         logger.debug('Creating new Valve object (config_dir=%s, '
                      'jar_file=%s, stop_port=%s, insecure=%s)' %
                      (config_dir, jar_file, stop_port, insecure))
 
         if jar_file is None:
             jar_file = _default_jar_file
+
+        if conn_fw is not None:
+            fws = ['jersey', 'apache']
+            if conn_fw not in fws:
+                raise ValueError('"%s" is not a valid connection framework. '
+                                 'If sepecified, conn_fw must be one of: '
+                                 '[%s]' % conn_fw, ', '.join(fws))
 
         if stop_port is None:
             if port is None:
@@ -77,6 +84,10 @@ class Valve:
 
         if insecure:
             pargs.append('-k')
+
+        if conn_fw is not None:
+            pargs.append('-cf')
+            pargs.append(conn_fw)
 
         pargs.append('start')
 
