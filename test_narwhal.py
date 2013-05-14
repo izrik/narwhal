@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from narwhal import conf
-from narwhal import repose
+from narwhal import valve
 from narwhal import pathutil
 from narwhal.download_repose import ReposeMavenConnector
 import unittest2 as unittest
@@ -50,9 +50,9 @@ class TestValveWaitOnStart(unittest.TestCase):
 
     def test_wait_on_start(self):
         logger.debug('starting valve')
-        self.valve = repose.ReposeValve(config_dir='test/conf', port=12345,
-                                        stop_port=6789, wait_on_start=True,
-                                        jar_file='test/bin/repose-valve.jar')
+        self.valve = valve.ReposeValve(config_dir='test/conf', port=12345,
+                                       stop_port=6789, wait_on_start=True,
+                                       jar_file='test/bin/repose-valve.jar')
         logger.debug('valve started, checking port')
         resp = requests.get('http://localhost:12345/')
         self.assertEqual(resp.status_code, 200)
