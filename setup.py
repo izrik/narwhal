@@ -8,7 +8,8 @@ setup(
     version=narwhal.__version__,
     packages=['narwhal'],
     license=open('LICENSE').read(),
-    long_description=open('README.txt').read(),
+    long_description=open('README.rst').read() + '\n\n' +
+                     open('HISTORY.rst').read(),
     author='Richard Sartor',
     author_email='richard.sartor@rackspace.com',
     url='https://github.com/richard-sartor/narwhal',

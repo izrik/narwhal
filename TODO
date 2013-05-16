@@ -2,4 +2,4 @@ deprecate/remove config sets
 config from url
 default configs in repo (use config-from-url)
 remove -p and -ps arguments when invoking valve
-
+  re-work wait_on_start to get all ports from config file
