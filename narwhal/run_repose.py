@@ -2,7 +2,7 @@
 
 import argparse
 import time
-import repose
+import valve
 
 from . import __version__
 
@@ -24,7 +24,7 @@ def run():
     parser.add_argument('--insecure', help='Don\'t verify SSL certs.',
                         action='store_true')
     parser.add_argument('--jar-file', help='The Repose Valve JAR file to run.',
-                        default=repose._default_jar_file)
+                        default=valve._default_jar_file)
 
     args = parser.parse_args()
 
@@ -34,9 +34,9 @@ def run():
         else:
             args.stop_port = int(args.port) + 1000
 
-    r = repose.ReposeValve(jar_file=args.jar_file, config_dir=args.config_dir,
-                           port=args.port, https_port=args.https_port,
-                           stop_port=args.stop_port, insecure=args.insecure)
+    r = valve.ReposeValve(jar_file=args.jar_file, config_dir=args.config_dir,
+                          port=args.port, https_port=args.https_port,
+                          stop_port=args.stop_port, insecure=args.insecure)
 
     r.wait()
 
