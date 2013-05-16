@@ -7,4 +7,4 @@ History
 ++++++++++++++++
 
 - Added an option to ``Valve`` to specify the connection framework for Repose
-    to use.
+  to use.
