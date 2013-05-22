@@ -19,44 +19,34 @@ class ReposeMavenConnector(maven.MavenConnector):
                                 'extensions-filter-bundle.ear')
 
     def get_repose_valve_url(self, root, snapshot=False, version=None):
-        if snapshot:
-            s_or_r = 'snapshots'
-        else:
-            s_or_r = 'releases'
-
-        vroot = "%s/%s/com/rackspace/papi/core/valve" % (root, s_or_r)
-
-        return self.get_artifact_url(vroot, 'jar', snapshot=snapshot,
-                                     version=version)
+        path = 'com/rackspace/papi/core/valve'
+        return self.get_repose_artifact_url(root=root, path=path,
+                                            extension='jar', snapshot=snapshot,
+                                            version=version)
 
     def get_filter_bundle_url(self, root, snapshot=False, version=None):
-        if snapshot:
-            s_or_r = 'snapshots'
-        else:
-            s_or_r = 'releases'
-
-        froot = ('%s/%s/com/rackspace/papi/components/filter-bundle' %
-                 (root, s_or_r))
-
-        f_artifact_url = self.get_artifact_url(froot, 'ear', snapshot=snapshot,
-                                               version=version)
-
-        return f_artifact_url
+        path = ('com/rackspace/papi/components/filter-bundle')
+        return self.get_repose_artifact_url(root=root, path=path,
+                                            extension='ear', snapshot=snapshot,
+                                            version=version)
 
     def get_extensions_filter_bundle_url(self, root, snapshot=False,
                                          version=None):
+        path = ('com/rackspace/papi/components/extensions/'
+                'extensions-filter-bundle')
+        return self.get_repose_artifact_url(root=root, path=path,
+                                            extension='ear', snapshot=snapshot,
+                                            version=version)
+
+    def get_repose_artifact_url(self, root, path, extension, snapshot=False,
+                                version=None):
         if snapshot:
             s_or_r = 'snapshots'
         else:
             s_or_r = 'releases'
-
-        eroot = ("%s/%s/com/rackspace/papi/components/extensions/"
-                 "extensions-filter-bundle" % (root, s_or_r))
-
-        e_artifact_url = self.get_artifact_url(eroot, 'ear', snapshot=snapshot,
-                                               version=version)
-
-        return e_artifact_url
+        subroot = '{0}/{1}/{2}'.format(root, s_or_r, path)
+        return self.get_artifact_url(root=subroot, extension=extension,
+                                     snapshot=snapshot, version=version)
 
     def get_repose(self, url_root=None, valve_dest=None, filter_dest=None,
                    ext_filter_dest=None, get_valve=True, get_filter=True,
