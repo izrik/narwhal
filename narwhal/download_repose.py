@@ -11,12 +11,17 @@ logger = logging.getLogger(__name__)
 
 
 class ReposeMavenConnector(maven.MavenConnector):
-    _default_url_root = ('http://maven.research.rackspacecloud.com/'
+    _default_url_root = ('maven.research.rackspacecloud.com/'
                          'content/repositories')
     _default_valve_dest = 'usr/share/repose/repose-valve.jar'
     _default_filter_dest = 'usr/share/repose/filters/filter-bundle.ear'
     _default_ext_filter_dest = ('usr/share/repose/filters/'
                                 'extensions-filter-bundle.ear')
+
+    def __init__(self, root=None):
+        if root is None:
+            root = self._default_url_root
+        maven.MavenConnector.__init__(self, root=root)
 
     def get_repose_valve_url(self, root, snapshot=False, version=None):
         path = 'com/rackspace/papi/core/valve'

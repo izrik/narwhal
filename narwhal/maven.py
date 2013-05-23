@@ -14,6 +14,11 @@ logger = logging.getLogger(__name__)
 
 
 class MavenConnector(object):
+    def __init__(self, root=None):
+        if root is None:
+            root = 'repo1.maven.org/maven2'
+        self.root = root
+
     def get_artifact_url(self, root, extension, snapshot=False, version=None):
 
         meta = '%s/maven-metadata.xml' % root
