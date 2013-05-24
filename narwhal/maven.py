@@ -13,16 +13,24 @@ from . import __version__
 logger = logging.getLogger(__name__)
 
 
+def get(url, *args, **kwargs):
+    logger.debug('getting "{0}"'.format(url))
+    if not re.match(r'\w+:', url):
+        url = 'http://{0}'.format(url)
+        logger.debug('changed url to "{0}"'.format(url))
+    return requests.get(url, *args, **kwargs)
+
+
 class MavenConnector(object):
     def __init__(self, root=None):
         if root is None:
             root = 'repo1.maven.org/maven2'
         self.root = root
 
-    def get_artifact_url(self, root, extension, snapshot=False, version=None):
+    def get_artifact_url(self, path, extension, snapshot=False, version=None):
 
-        meta = '%s/maven-metadata.xml' % root
-        metas = requests.get(meta).text
+        meta = '{0}/{1}/maven-metadata.xml'.format(self.root, path)
+        metas = get(meta).text
         metax = et.fromstring(metas)
         artifact_id = metax.find('artifactId').text
         if snapshot:
@@ -54,9 +62,10 @@ class MavenConnector(object):
                 if not found:
                     raise Exception('Version "%s" not found in the metadata' %
                                     main_version)
-            version_root = '%s/%s-SNAPSHOT' % (root, main_version)
+            version_root = '{0}/{1}/{2}-SNAPSHOT'.format(self.root, path,
+                                                         main_version)
             meta2 = '%s/maven-metadata.xml' % version_root
-            meta2s = requests.get(meta2).text
+            meta2s = get(meta2).text
             meta2x = et.fromstring(meta2s)
             if snapshot_version is None:
                 last_updated = meta2x.find('versioning/lastUpdated').text
@@ -95,9 +104,9 @@ class MavenConnector(object):
                 if not found:
                     raise Exception('Version "%s" not found in the metadata' %
                                     version)
-            version_root = '%s/%s' % (root, version)
-            artifact_url = '%s/%s-%s.%s' % (version_root, artifact_id, version,
-                                            extension)
+            version_root = '{0}/{1}/{2}'.format(self.root, path, version)
+            artifact_url = '{0}/{1}-{2}.{3}'.format(version_root, artifact_id,
+                                                    version, extension)
             return artifact_url
 
         return None
@@ -154,7 +163,7 @@ class MavenConnector(object):
 
     def download_file(self, url, dest):
 
-        response = requests.get(url, stream=True)
+        response = get(url, stream=True)
         if response.status_code != 200:
             raise ValueError
 
