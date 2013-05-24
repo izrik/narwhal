@@ -1,3 +1,4 @@
+bug: specifying wait_timeout to Valve.__init__ causes NameError
 deprecate/remove config sets
 config from url
 default configs in repo (use config-from-url)
