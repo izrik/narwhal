@@ -14,24 +14,47 @@ _default_filter_dest = 'usr/share/repose/filters/filter-bundle.ear'
 _default_ext_filter_dest = ('usr/share/repose/filters/'
                             'extensions-filter-bundle.ear')
 
+objects = [
+    {
+        'name': 'valve',
+        'path': 'com/rackspace/papi/core/valve',
+        'extension': 'jar'
+    },
+    {
+        'name': 'filter',
+        'path': 'com/rackspace/papi/components/filter-bundle',
+        'extension': 'ear'
+    },
+    {
+        'name': 'ext-filter',
+        'path': 'com/rackspace/papi/components/extensions/'
+                'extensions-filter-bundle',
+        'extension': 'ear'
+    },
+]
+
+objects_by_name = dict(((obj['name'], obj) for obj in objects))
+
+
+def get_repose_object_url(rmc, obj, snapshot=False, version=None):
+    return rmc.get_repose_artifact_url(path=obj['path'],
+                                       extension=obj['extension'],
+                                       snapshot=snapshot, version=version)
+
 
 def get_repose_valve_url(rmc, snapshot=False, version=None):
-    path = 'com/rackspace/papi/core/valve'
-    return rmc.get_repose_artifact_url(path=path, extension='jar',
-                                       snapshot=snapshot, version=version)
+    return get_repose_object_url(rmc, objects_by_name['valve'],
+                                 snapshot=snapshot, version=version)
 
 
 def get_filter_bundle_url(rmc, snapshot=False, version=None):
-    path = 'com/rackspace/papi/components/filter-bundle'
-    return rmc.get_repose_artifact_url(path=path, extension='ear',
-                                       snapshot=snapshot, version=version)
+    return get_repose_object_url(rmc, objects_by_name['filter'],
+                                 snapshot=snapshot, version=version)
 
 
 def get_extensions_filter_bundle_url(rmc, snapshot=False, version=None):
-    path = ('com/rackspace/papi/components/extensions/'
-            'extensions-filter-bundle')
-    return rmc.get_repose_artifact_url(path=path, extension='ear',
-                                       snapshot=snapshot, version=version)
+    return get_repose_object_url(rmc, objects_by_name['ext-filter'],
+                                 snapshot=snapshot, version=version)
 
 
 def get_repose(rmc, valve_dest=None, filter_dest=None,
