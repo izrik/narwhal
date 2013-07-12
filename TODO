@@ -1,5 +1,9 @@
+bug: specifying wait_timeout to Valve.__init__ causes NameError
 deprecate/remove config sets
 config from url
 default configs in repo (use config-from-url)
 remove -p and -ps arguments when invoking valve
   re-work wait_on_start to get all ports from config file
+test_narwhal.py requires unittest 
+  setup -> test_requires?
+  switch back to unittest?
